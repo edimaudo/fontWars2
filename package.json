@@ -1,0 +1,36 @@
+{
+  "name": "fontwars",
+  "version": "1.0.0",
+  "private": true,
+  "description": "fontWars — a daily typographic identification duel for Reddit Devvit Web",
+  "engines": { "node": ">=24.18.0" },
+  "scripts": {
+    "dev": "devvit playtest",
+    "build:client": "vite build",
+    "build:server": "esbuild src/server/index.ts --bundle --platform=node --format=cjs --target=node22 --external:@devvit/* --external:hono --outfile=dist/server/index.js",
+    "build": "npm run typecheck && npm run build:client && npm run build:server",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "deploy": "npm run build && devvit upload",
+    "launch": "npm run build && devvit publish",
+    "login": "devvit login"
+  },
+  "dependencies": {
+    "@devvit/analytics": "^0.15.0",
+    "@devvit/redis": "^0.15.0",
+    "@devvit/web": "^0.15.0",
+    "hono": "^4.8.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^4.6.0",
+    "esbuild": "^0.25.5",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vitest": "^3.2.4"
+  }
+}

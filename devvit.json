@@ -1,0 +1,77 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "fontwars",
+  "version": "1.0.0",
+  "description": "A daily typographic identification duel. Five specimens. Twelve seconds each.",
+  "post": {
+    "dir": "dist/client",
+    "entrypoints": {
+      "default": {
+        "entry": "splash.html",
+        "height": "regular"
+      },
+      "game": {
+        "entry": "game.html"
+      }
+    }
+  },
+  "server": {
+    "dir": "dist/server",
+    "entry": "index.js"
+  },
+  "permissions": {
+    "redis": true,
+    "reddit": {
+      "enable": true,
+      "scope": "moderator",
+      "asUser": [
+        "SUBMIT_COMMENT"
+      ]
+    },
+    "journeys": true,
+    "notifications": true
+  },
+  "settings": {
+    "global": {
+      "serverSalt": {
+        "type": "string",
+        "label": "Daily puzzle seed salt",
+        "isSecret": true,
+        "defaultValue": ""
+      }
+    },
+    "subreddit": {
+      "autoCreateDailyPost": {
+        "type": "boolean",
+        "label": "Automatically create the daily fontWars post",
+        "defaultValue": true
+      },
+      "pushNotificationsEnabled": {
+        "type": "boolean",
+        "label": "Enable daily push reminders (requires Reddit push beta approval)",
+        "defaultValue": false
+      }
+    }
+  },
+  "scheduler": {
+    "tasks": {
+      "daily-specimen-drop": {
+        "endpoint": "/internal/scheduler/daily-drop",
+        "cron": "0 0 * * *"
+      },
+      "daily-push-batch": {
+        "endpoint": "/internal/scheduler/daily-push-batch"
+      }
+    }
+  },
+  "menu": {
+    "items": [
+      {
+        "label": "Create today's fontWars post",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/create-daily-post"
+      }
+    ]
+  }
+}

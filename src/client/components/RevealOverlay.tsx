@@ -1,0 +1,45 @@
+import React from 'react';
+import type { RevealPayload } from '../../shared/types';
+
+interface Props {
+  reveal: RevealPayload;
+  onNext: () => void;
+  lastRound: boolean;
+}
+
+export function RevealOverlay({ reveal, onNext, lastRound }: Props) {
+  const { result, correctFont, options, crowdPercentages } = reveal;
+  return (
+    <section className="reveal-panel" aria-live="polite">
+      <div className={`reveal-verdict ${result.isCorrect ? 'is-correct' : 'is-missed'}`}>
+        <strong>{result.isCorrect ? '✓ CORRECT' : '× MISSED'}</strong>
+        <span>{result.roundScore.toLocaleString('en-US')} PTS</span>
+      </div>
+      <div className="reveal-answer">
+        <strong>{correctFont.name}</strong>
+        <span>{correctFont.designer} · {correctFont.year} · {correctFont.foundry}</span>
+      </div>
+      <div className="option-grid option-grid-reveal" aria-label="Answer and subreddit crowd split">
+        {options.map((option) => {
+          const isCorrect = option.id === result.targetFontId;
+          const isSelectedMiss = option.id === result.selectedFontId && !result.isCorrect;
+          return (
+            <div className={`font-option reveal-option ${isCorrect ? 'reveal-option-correct' : isSelectedMiss ? 'reveal-option-missed' : 'reveal-option-dim'}`} key={option.id}>
+              <strong style={{ fontFamily: `"${option.renderFamily}", ${option.fallbackCss}`, fontWeight: option.assetWeight as React.CSSProperties['fontWeight'], fontStyle: option.assetStyle, fontSynthesis: 'none' }}>{option.name}</strong>
+              <span className="option-meta">{option.foundry} · {option.year}</span>
+              <div className="reveal-option-bar"><i style={{ width: `${crowdPercentages[option.id] ?? 0}%` }} /></div>
+              <span className="reveal-option-percent">{crowdPercentages[option.id] ?? 0}% picked</span>
+              {isCorrect && <span className="answer-stamp">✓ MATCH</span>}
+              {isSelectedMiss && <span className="answer-stamp">× YOUR PICK</span>}
+            </div>
+          );
+        })}
+      </div>
+      <p className="reveal-diagnostic">{result.diagnosticNote}</p>
+      {result.triviaTitle && <div className="trivia-note"><b>{result.triviaTitle}</b><p>{result.triviaNote}</p></div>}
+      <button className="primary-button next-button" onClick={onNext}>
+        {lastRound ? 'See your specimen sheet' : 'Next specimen'}<span aria-hidden="true">→</span>
+      </button>
+    </section>
+  );
+}

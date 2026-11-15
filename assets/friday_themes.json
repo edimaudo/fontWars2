@@ -1,0 +1,18 @@
+{
+  "themes": [
+    {
+      "id": "cinema-title-sequences",
+      "label": "Cinema title sequences",
+      "clusterId": "culture-cinema",
+      "triviaTitle": "Typography sets the scene",
+      "triviaNote": "A title treatment can suggest a genre, period or mood before the story begins. Designers use type proportions, contrast and spacing as part of the visual world-building."
+    },
+    {
+      "id": "poster-culture",
+      "label": "Poster culture",
+      "clusterId": "culture-poster",
+      "triviaTitle": "Posters are read at a glance",
+      "triviaNote": "A poster has to establish hierarchy at a distance. A strong typeface gives the title a memorable silhouette while weight and spacing help the message survive a quick look."
+    }
+  ]
+}

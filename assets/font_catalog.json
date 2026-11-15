@@ -1,0 +1,550 @@
+{
+  "fonts": [
+    {
+      "id": "playfair-display",
+      "name": "Playfair Display",
+      "designer": "Claus Eggers Sørensen",
+      "year": 2011,
+      "foundry": "Independent",
+      "fallbackCss": "Georgia, 'Times New Roman', serif",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_01.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "bebas-neue",
+      "name": "Bebas Neue",
+      "designer": "Ryoichi Tsunekawa",
+      "year": 2010,
+      "foundry": "Dharma Type",
+      "fallbackCss": "Impact, 'Arial Narrow', sans-serif",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_02.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "pacifico",
+      "name": "Pacifico",
+      "designer": "Vernon Adams",
+      "year": 2011,
+      "foundry": "Independent",
+      "fallbackCss": "'Brush Script MT', cursive",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_03.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "roboto-slab",
+      "name": "Roboto Slab",
+      "designer": "Christian Robertson",
+      "year": 2013,
+      "foundry": "Google Fonts",
+      "fallbackCss": "Rockwell, Georgia, serif",
+      "license": "Apache License 2.0",
+      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+      "fontAssets": [
+        {
+          "file": "fw_face_04.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "eb-garamond",
+      "name": "EB Garamond",
+      "designer": "Georg Duffner",
+      "year": 2011,
+      "foundry": "Independent",
+      "fallbackCss": "Garamond, Georgia, serif",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_05.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "libre-baskerville",
+      "name": "Libre Baskerville",
+      "designer": "Pablo Impallari",
+      "year": 2012,
+      "foundry": "Independent",
+      "fallbackCss": "Baskerville, Georgia, serif",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_06.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "cormorant-garamond",
+      "name": "Cormorant Garamond",
+      "designer": "Christian Thalmann",
+      "year": 2015,
+      "foundry": "Catharsis Fonts",
+      "fallbackCss": "Garamond, Georgia, serif",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_07.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "gfs-didot",
+      "name": "GFS Didot",
+      "designer": "Greek Font Society",
+      "year": 2006,
+      "foundry": "Greek Font Society",
+      "fallbackCss": "Didot, 'Bodoni MT', serif",
+      "license": "GFS Open Font License",
+      "licenseUrl": "https://greekfontsociety-gfs.gr/",
+      "fontAssets": [
+        {
+          "file": "fw_face_08.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "inter",
+      "name": "Inter",
+      "designer": "Rasmus Andersson",
+      "year": 2016,
+      "foundry": "Independent",
+      "fallbackCss": "Arial, Helvetica, sans-serif",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_09.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "work-sans",
+      "name": "Work Sans",
+      "designer": "Wei Huang",
+      "year": 2015,
+      "foundry": "Independent",
+      "fallbackCss": "Arial, Helvetica, sans-serif",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_10.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "ibm-plex-sans",
+      "name": "IBM Plex Sans",
+      "designer": "Mike Abbink and Bold Monday",
+      "year": 2017,
+      "foundry": "IBM",
+      "fallbackCss": "Arial, Helvetica, sans-serif",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_11.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "public-sans",
+      "name": "Public Sans",
+      "designer": "U.S. Web Design System team",
+      "year": 2019,
+      "foundry": "U.S. Web Design System",
+      "fallbackCss": "Arial, Helvetica, sans-serif",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_12.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "jost",
+      "name": "Jost",
+      "designer": "Indestructible Type",
+      "year": 2019,
+      "foundry": "Indestructible Type",
+      "fallbackCss": "Futura, 'Century Gothic', sans-serif",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_13.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "montserrat",
+      "name": "Montserrat",
+      "designer": "Julieta Ulanovsky",
+      "year": 2011,
+      "foundry": "Independent",
+      "fallbackCss": "'Century Gothic', Arial, sans-serif",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_14.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "manrope",
+      "name": "Manrope",
+      "designer": "Mikhail Sharanda",
+      "year": 2018,
+      "foundry": "Independent",
+      "fallbackCss": "Arial, Helvetica, sans-serif",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_15.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "lato",
+      "name": "Lato",
+      "designer": "Łukasz Dziedzic",
+      "year": 2010,
+      "foundry": "Independent",
+      "fallbackCss": "Arial, Helvetica, sans-serif",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_16.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "bungee",
+      "name": "Bungee",
+      "designer": "David Jonathan Ross",
+      "year": 2017,
+      "foundry": "DJR",
+      "fallbackCss": "Impact, sans-serif",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_17.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "bowlby-one-sc",
+      "name": "Bowlby One SC",
+      "designer": "Vernon Adams",
+      "year": 2010,
+      "foundry": "Independent",
+      "fallbackCss": "Impact, sans-serif",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_18.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "shrikhand",
+      "name": "Shrikhand",
+      "designer": "Jonny Pinhorn",
+      "year": 2017,
+      "foundry": "Independent",
+      "fallbackCss": "Georgia, serif",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_19.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    },
+    {
+      "id": "cinzel",
+      "name": "Cinzel",
+      "designer": "Natanael Gama",
+      "year": 2013,
+      "foundry": "Independent",
+      "fallbackCss": "Trajan, 'Times New Roman', serif",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/",
+      "fontAssets": [
+        {
+          "file": "fw_face_20.ttf",
+          "format": "truetype",
+          "weight": 400,
+          "style": "normal"
+        }
+      ]
+    }
+  ],
+  "clusters": [
+    {
+      "id": "display-contrast",
+      "round": 1,
+      "category": "Iconic display",
+      "difficulty": "Warm-up",
+      "fontIds": [
+        "playfair-display",
+        "bebas-neue",
+        "pacifico",
+        "roboto-slab"
+      ],
+      "phrase": "Hamburgefonstiv",
+      "instruction": "Read the silhouette first. Then inspect the terminals.",
+      "diagnostics": {
+        "playfair-display": "High-contrast strokes and sharply bracketed serifs give the letters an editorial display rhythm.",
+        "bebas-neue": "Tall, condensed capitals with compact proportions create the unmistakable poster silhouette.",
+        "pacifico": "Connected brush-script forms and a lively forward slant separate it from the upright faces.",
+        "roboto-slab": "A sturdy slab structure and relatively even stroke weight keep the texture robust and mechanical."
+      }
+    },
+    {
+      "id": "display-personality",
+      "round": 1,
+      "category": "Display personality",
+      "difficulty": "Warm-up",
+      "fontIds": [
+        "bungee",
+        "bowlby-one-sc",
+        "shrikhand",
+        "cinzel"
+      ],
+      "phrase": "The five boxing wizards jump quickly",
+      "instruction": "Look at the letter construction, not the mood.",
+      "diagnostics": {
+        "bungee": "Inline construction and squared display forms give the face its dimensional sign-painter character.",
+        "bowlby-one-sc": "Rounded, oversized forms and a heavy single-storey rhythm dominate the word shape.",
+        "shrikhand": "Dense, swelling letterforms and expressive curves produce a calligraphic display texture.",
+        "cinzel": "Classical inscriptional capitals, sharp wedge-like details and Roman proportions define the face."
+      }
+    },
+    {
+      "id": "book-serif-forms",
+      "round": 2,
+      "category": "Classic book serif",
+      "difficulty": "Intermediate",
+      "fontIds": [
+        "eb-garamond",
+        "libre-baskerville",
+        "cormorant-garamond",
+        "gfs-didot"
+      ],
+      "phrase": "Sphinx of black quartz, judge my vow",
+      "instruction": "Compare stress, bracket shape and the transition into the serifs.",
+      "diagnostics": {
+        "eb-garamond": "Old-style proportions, moderate contrast and softly bracketed serifs keep the text colour calm.",
+        "libre-baskerville": "A generous x-height and sturdy, readable serifs give the face a firm book-page texture.",
+        "cormorant-garamond": "Fine hairlines, sculptural curves and elegant proportions make the texture more delicate.",
+        "gfs-didot": "Vertical stress and extreme thick-thin contrast create a crisp Didone appearance."
+      }
+    },
+    {
+      "id": "neo-grotesque-duel",
+      "round": 3,
+      "category": "Neo-grotesque duel",
+      "difficulty": "Advanced",
+      "fontIds": [
+        "inter",
+        "work-sans",
+        "ibm-plex-sans",
+        "public-sans"
+      ],
+      "phrase": "Hamburgefonstiv 0123456789",
+      "instruction": "The differences are small. Check the e, a, t and numeral widths.",
+      "diagnostics": {
+        "inter": "A tall x-height, compact spacing and carefully tuned screen proportions produce a crisp neutral texture.",
+        "work-sans": "A condensed, utilitarian rhythm and restrained details distinguish this contemporary grotesque.",
+        "ibm-plex-sans": "The double-storey forms and engineered curves carry a subtle technical, industrial character.",
+        "public-sans": "Open apertures and practical proportions make the face feel neutral, direct and highly legible."
+      }
+    },
+    {
+      "id": "grotesque-openings",
+      "round": 3,
+      "category": "Grotesque lookalikes",
+      "difficulty": "Advanced",
+      "fontIds": [
+        "inter",
+        "manrope",
+        "lato",
+        "work-sans"
+      ],
+      "phrase": "a e g t r · AVATAR",
+      "instruction": "Inspect the aperture, the shoulder and the terminal on the t.",
+      "diagnostics": {
+        "inter": "The compact, controlled apertures and neutral terminals give the lowercase a disciplined rhythm.",
+        "manrope": "Geometric construction with open counters and rounded joins makes the face feel more contemporary.",
+        "lato": "Humanist proportions and warmer curves soften the overall texture compared with the geometric options.",
+        "work-sans": "A more utilitarian construction and restrained widths make the rhythm slightly tighter."
+      }
+    },
+    {
+      "id": "geometric-humanist",
+      "round": 4,
+      "category": "Geometric vs humanist",
+      "difficulty": "Expert",
+      "fontIds": [
+        "jost",
+        "montserrat",
+        "manrope",
+        "lato"
+      ],
+      "phrase": "minimum rhythm · AVATAR",
+      "instruction": "Find the geometry in the o, then compare the joins and apertures.",
+      "diagnostics": {
+        "jost": "Near-circular bowls and geometric construction create a clean, rational rhythm.",
+        "montserrat": "Wide proportions and geometric shapes give the capitals a broad, architectural stance.",
+        "manrope": "A more balanced geometric construction and restrained spacing keep the forms compact.",
+        "lato": "Humanist proportions, softer curves and open forms give the text a warmer reading texture."
+      }
+    },
+    {
+      "id": "signage-spacing",
+      "round": 4,
+      "category": "Micro-detailing",
+      "difficulty": "Expert",
+      "fontIds": [
+        "public-sans",
+        "ibm-plex-sans",
+        "inter",
+        "lato"
+      ],
+      "phrase": "minimum / rn / 11.07.26",
+      "instruction": "Separate similar silhouettes by their micro-details and spacing.",
+      "diagnostics": {
+        "public-sans": "Open counters and broad apertures keep ambiguous pairs like rn and m distinct.",
+        "ibm-plex-sans": "The shape of the r shoulder and the engineered numeral system provide the key clues.",
+        "inter": "Compact spacing and tight control of the lowercase forms create a dense, even texture.",
+        "lato": "Softer terminals and a more humanist skeleton make the lowercase rhythm easier to distinguish."
+      }
+    },
+    {
+      "id": "culture-cinema",
+      "round": 5,
+      "category": "Culture / title sequence",
+      "difficulty": "Final round",
+      "fontIds": [
+        "cinzel",
+        "bungee",
+        "bebas-neue",
+        "playfair-display"
+      ],
+      "phrase": "The quick brown fox jumps over the lazy dog",
+      "instruction": "Recognise the visual language, then verify one diagnostic glyph.",
+      "diagnostics": {
+        "cinzel": "Inscriptional capitals and classical proportions evoke monumental title typography.",
+        "bungee": "Layered inline forms and solid geometry give the letters a sign-painted dimensional effect.",
+        "bebas-neue": "A narrow, towering silhouette is the defining feature of this condensed display face.",
+        "playfair-display": "The high contrast and elegant serif details create a distinctly editorial voice."
+      },
+      "triviaTitle": "A typeface is a cultural shortcut",
+      "triviaNote": "Display faces carry visual associations before a word is even read. Film titles, posters and album covers use that recognition to establish a world in a fraction of a second."
+    },
+    {
+      "id": "culture-poster",
+      "round": 5,
+      "category": "Culture / poster type",
+      "difficulty": "Final round",
+      "fontIds": [
+        "bowlby-one-sc",
+        "shrikhand",
+        "bungee",
+        "bebas-neue"
+      ],
+      "phrase": "Pack my box with five dozen liquor jugs",
+      "instruction": "The last specimen rewards instinct and a final close inspection.",
+      "diagnostics": {
+        "bowlby-one-sc": "The broad, soft, heavy forms create an unusually dense block of display lettering.",
+        "shrikhand": "Calligraphic swelling and unusual curves distinguish this expressive display face.",
+        "bungee": "The inline construction, squared counters and sign-painter proportions are the giveaway.",
+        "bebas-neue": "The very narrow width and tall capitals create a compressed poster rhythm."
+      },
+      "triviaTitle": "Poster lettering is built for distance",
+      "triviaNote": "Display type is often designed to survive a glance, not a long read. Width, weight and counter shape help a title remain recognisable from across a room."
+    }
+  ]
+}
