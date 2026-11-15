@@ -111,19 +111,24 @@ export function getPrimaryFontAsset(font: FontRecord): FontAssetRecord {
     ?? font.fontAssets.find((item) => item.style === 'normal')
     ?? font.fontAssets[0];
   if (!asset) throw new Error(`No font assets configured for ${font.id}.`);
-  if (!/^[a-zA-Z0-9._-]+\.(ttf|woff|woff2)$/i.test(asset.file)) {
-    throw new Error(`Invalid font asset filename for ${font.id}.`);
+  // Use the typeface's actual name as its filename, including spaces.
+  // Supported pairs are `<Font Name>.ttf` + `truetype` and
+  // `<Font Name>.otf` + `opentype`.
+  const extension = asset.format === 'truetype' ? '.ttf'
+    : asset.format === 'opentype' ? '.otf'
+      : null;
+  if (!extension) {
+    throw new Error(`Font asset format for ${font.id} must be truetype or opentype.`);
   }
-  const extension = asset.file.split('.').pop()?.toLowerCase();
-  const expectedExtension = asset.format === 'truetype' ? 'ttf' : asset.format;
-  if (extension !== expectedExtension) {
-    throw new Error(`Font asset format does not match its filename for ${font.id}.`);
+  const expectedFile = `${font.name}${extension}`;
+  if (asset.file !== expectedFile) {
+    throw new Error(`Font asset filename for ${font.id} must be exactly "${expectedFile}".`);
   }
   return asset;
 }
 
 function assetFormatForCss(format: FontAssetRecord['format']): string {
-  return format === 'truetype' ? 'truetype' : format;
+  return format;
 }
 
 export function safeFontOption(date: string, round: number, fontId: string): SafeFontOption {
@@ -136,7 +141,7 @@ export function safeFontOption(date: string, round: number, fontId: string): Saf
     year: font.year,
     foundry: font.foundry,
     renderFamily: aliasFor(date, round, fontId, 'option'),
-    assetUrl: `/fonts/${asset.file}`,
+    assetUrl: `/fonts/${encodeURIComponent(asset.file)}`,
     assetFormat: assetFormatForCss(asset.format),
     assetWeight: String(asset.weight),
     assetStyle: asset.style,
@@ -149,7 +154,7 @@ export function safeTargetSpecimen(date: string, round: number, fontId: string):
   const asset = getPrimaryFontAsset(font);
   return {
     renderFamily: aliasFor(date, round, fontId, 'specimen'),
-    assetUrl: `/fonts/${asset.file}`,
+    assetUrl: `/fonts/${encodeURIComponent(asset.file)}`,
     assetFormat: assetFormatForCss(asset.format),
     assetWeight: String(asset.weight),
     assetStyle: asset.style,

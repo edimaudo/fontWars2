@@ -1,6 +1,6 @@
 export type GameStatus = 'UNSTARTED' | 'IN_PROGRESS' | 'COMPLETED';
 
-export type FontAssetFormat = 'truetype' | 'woff' | 'woff2';
+export type FontAssetFormat = 'truetype' | 'opentype';
 export type FontAssetStyle = 'normal' | 'italic' | 'oblique';
 
 export interface FontAssetRecord {

@@ -1,39 +1,42 @@
-# fontWars typeface assets (TTF)
+# fontWars font library
 
-Place the licensed TrueType font files (`.ttf`) in this directory. The game reads font metadata from `assets/font_catalog.json`; binary font files stay separate in this folder.
+Place each licensed TrueType (`.ttf`) or OpenType (`.otf`) font in this directory using its actual typeface name as the filename. The filename must match the catalogue name exactly, followed by the matching extension.
 
-## Required regular-weight files
+Examples:
+- `Inter.ttf`
+- `Playfair Display.otf`
+- `Bowlby One SC.ttf`
 
-Use these exact filenames so the existing catalogue resolves them:
+## Current catalogue filenames
 
-| File | Typeface |
+| Font | Required filename |
 |---|---|
-| `fw_face_01.ttf` | Playfair Display |
-| `fw_face_02.ttf` | Bebas Neue |
-| `fw_face_03.ttf` | Pacifico |
-| `fw_face_04.ttf` | Roboto Slab |
-| `fw_face_05.ttf` | EB Garamond |
-| `fw_face_06.ttf` | Libre Baskerville |
-| `fw_face_07.ttf` | Cormorant Garamond |
-| `fw_face_08.ttf` | GFS Didot |
-| `fw_face_09.ttf` | Inter |
-| `fw_face_10.ttf` | Work Sans |
-| `fw_face_11.ttf` | IBM Plex Sans |
-| `fw_face_12.ttf` | Public Sans |
-| `fw_face_13.ttf` | Jost |
-| `fw_face_14.ttf` | Montserrat |
-| `fw_face_15.ttf` | Manrope |
-| `fw_face_16.ttf` | Lato |
-| `fw_face_17.ttf` | Bungee |
-| `fw_face_18.ttf` | Bowlby One SC |
-| `fw_face_19.ttf` | Shrikhand |
-| `fw_face_20.ttf` | Cinzel |
+| Playfair Display | `Playfair Display.ttf` |
+| Bebas Neue | `Bebas Neue.ttf` |
+| Pacifico | `Pacifico.ttf` |
+| Roboto Slab | `Roboto Slab.ttf` |
+| EB Garamond | `EB Garamond.ttf` |
+| Libre Baskerville | `Libre Baskerville.ttf` |
+| Cormorant Garamond | `Cormorant Garamond.ttf` |
+| GFS Didot | `GFS Didot.ttf` |
+| Inter | `Inter.ttf` |
+| Work Sans | `Work Sans.ttf` |
+| IBM Plex Sans | `IBM Plex Sans.ttf` |
+| Public Sans | `Public Sans.ttf` |
+| Jost | `Jost.ttf` |
+| Montserrat | `Montserrat.ttf` |
+| Manrope | `Manrope.ttf` |
+| Lato | `Lato.ttf` |
+| Bungee | `Bungee.ttf` |
+| Bowlby One SC | `Bowlby One SC.ttf` |
+| Shrikhand | `Shrikhand.ttf` |
+| Cinzel | `Cinzel.ttf` |
 
-## Adding fonts
+## Adding a font
 
-1. Add the `.ttf` file using its mapped filename.
-2. Keep the font's licence and attribution notice. Put licence files in `public/fonts/licenses/` and record the licence URL in `assets/font_catalog.json`.
-3. Do not commit fonts unless their licence permits redistribution in this app.
-4. The catalogue supports multiple assets per family. Add another `fontAssets` entry for additional weights or styles, specifying `file`, `format`, `weight`, and `style`. The game currently selects the regular (`400`, `normal`) face for the live specimen.
+1. Add the font binary as `<Font Name>.ttf` or `<Font Name>.otf` in this folder, matching the selected format. Preserve spaces and punctuation in the typeface name.
+2. In `assets/font_catalog.json`, set the matching `fontAssets[0].file` to the exact same filename and `format` to `truetype` for `.ttf` or `opentype` for `.otf`.
+3. Keep the font licence and attribution information. Do not add fonts unless their licence permits redistribution in this app.
+4. The server verifies that each catalogue filename exactly matches the font name plus its format-specific extension (`.ttf` for `truetype`, `.otf` for `opentype`). URLs are percent-encoded automatically, so spaces in filenames work in browsers.
 
-The app intentionally does not substitute a system font when a required TTF is missing or invalid. A failed asset blocks the round before its timer starts so players are not scored against an inaccurate specimen.
+The game does not use numbered or obfuscated filenames for font binaries. Opaque render-family names are still used in CSS to avoid exposing the target font name in the active round payload. A missing or invalid TTF/OTF file blocks the round before its timer starts.

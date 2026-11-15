@@ -26,16 +26,17 @@ describe('daily specimen generator', () => {
   });
 
 
-  it('resolves only the active puzzle round to four TTF choices and one target specimen', () => {
+  it('resolves only the active puzzle round to four font choices and one target specimen', () => {
     const puzzle = generateDailyPuzzle('2026-11-14', 'test-salt-1234567890');
     const options = getRoundFontOptions(puzzle, 3);
     const target = getTargetSpecimen(puzzle, 3);
 
     expect(options).toHaveLength(4);
     expect(options.map((option) => option.id).sort()).toEqual([...puzzle.rounds[2]!.optionFontIds].sort());
-    expect(options.every((option) => option.assetUrl.startsWith('/fonts/fw_face_') && option.assetUrl.endsWith('.ttf'))).toBe(true);
+    expect(options.every((option) => option.assetUrl.startsWith('/fonts/') && option.assetUrl.endsWith('.ttf'))).toBe(true);
+    expect(options.map((option) => decodeURIComponent(option.assetUrl.split('/').pop()!))).toEqual(options.map((option) => `${option.name}.ttf`));
     expect(new Set(options.map((option) => option.renderFamily)).size).toBe(4);
-    expect(target.assetUrl.startsWith('/fonts/fw_face_')).toBe(true);
+    expect(target.assetUrl.startsWith('/fonts/')).toBe(true);
     expect(target.assetUrl.endsWith('.ttf')).toBe(true);
     expect(options.find((option) => option.id === puzzle.rounds[2]!.targetFontId)?.assetUrl).toBe(target.assetUrl);
     expect(target).not.toHaveProperty('id');
@@ -43,13 +44,43 @@ describe('daily specimen generator', () => {
   });
 
 
-  it('rejects a binary filename that does not match its declared font format', () => {
+  it('rejects a binary filename that does not match the typeface name', () => {
     const font = getFont('inter');
     const invalid = {
       ...font,
-      fontAssets: [{ ...font.fontAssets[0]!, file: 'fw_face_09.woff2' }],
+      fontAssets: [{ ...font.fontAssets[0]!, file: 'Inter Typeface.ttf' }],
     };
-    expect(() => getPrimaryFontAsset(invalid)).toThrow('format does not match');
+    expect(() => getPrimaryFontAsset(invalid)).toThrow('must be exactly');
+  });
+
+
+
+  it('accepts an OpenType asset when its filename matches the typeface name', () => {
+    const font = getFont('inter');
+    const openType = {
+      ...font,
+      fontAssets: [{ ...font.fontAssets[0]!, file: 'Inter.otf', format: 'opentype' as const }],
+    };
+    expect(getPrimaryFontAsset(openType)).toMatchObject({ file: 'Inter.otf', format: 'opentype' });
+  });
+
+  it('rejects an OpenType asset with a mismatched extension or format', () => {
+    const font = getFont('inter');
+    const wrongExtension = {
+      ...font,
+      fontAssets: [{ ...font.fontAssets[0]!, file: 'Inter.ttf', format: 'opentype' as const }],
+    };
+    const wrongFormat = {
+      ...font,
+      fontAssets: [{ ...font.fontAssets[0]!, file: 'Inter.otf', format: 'truetype' as const }],
+    };
+    expect(() => getPrimaryFontAsset(wrongExtension)).toThrow('must be exactly "Inter.otf"');
+    expect(() => getPrimaryFontAsset(wrongFormat)).toThrow('must be exactly "Inter.ttf"');
+  });
+
+  it('uses the typeface display name as the TTF filename', () => {
+    expect(getPrimaryFontAsset(getFont('inter')).file).toBe('Inter.ttf');
+    expect(getPrimaryFontAsset(getFont('playfair-display')).file).toBe('Playfair Display.ttf');
   });
 
   it('does not send the target font name or ID in the specimen payload', () => {

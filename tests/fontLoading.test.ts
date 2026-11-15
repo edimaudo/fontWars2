@@ -35,7 +35,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('TTF font loading', () => {
+describe('TTF and OTF font loading', () => {
   it('loads the target and all four choices as TrueType faces', async () => {
     const constructed: Array<{ family: string; source: string }> = [];
     class MockFontFace {
@@ -62,6 +62,37 @@ describe('TTF font loading', () => {
     expect(constructed.every((face) => face.source.includes('format("truetype")'))).toBe(true);
     expect(fontSet.add).toHaveBeenCalledTimes(5);
     expect(fontSet.check).toHaveBeenCalledTimes(5);
+  });
+
+
+  it('loads OpenType assets using the opentype format hint', async () => {
+    const constructed: Array<{ family: string; source: string }> = [];
+    class MockFontFace {
+      status = 'unloaded';
+      constructor(family: string, source: string) {
+        constructed.push({ family, source });
+      }
+      async load() {
+        this.status = 'loaded';
+        return this;
+      }
+    }
+    const fontSet = { add: vi.fn(), ready: Promise.resolve(), check: vi.fn().mockReturnValue(true) };
+    vi.stubGlobal('FontFace', MockFontFace);
+    vi.stubGlobal('document', { fonts: fontSet });
+    const round = makeRound('opentype');
+    round.target.assetUrl = '/fonts/Target.otf';
+    round.target.assetFormat = 'opentype';
+    round.options.forEach((option, index) => {
+      option.assetUrl = `/fonts/Choice%20${index + 1}.otf`;
+      option.assetFormat = 'opentype';
+    });
+
+    await registerFontFaces(round);
+
+    expect(constructed).toHaveLength(5);
+    expect(constructed.every((face) => face.source.includes('format("opentype")'))).toBe(true);
+    expect(fontSet.add).toHaveBeenCalledTimes(5);
   });
 
   it('rejects a required face when its TTF asset fails to load', async () => {

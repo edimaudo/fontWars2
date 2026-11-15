@@ -11,7 +11,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_01.ttf",
+          "file": "Playfair Display.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -29,7 +29,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_02.ttf",
+          "file": "Bebas Neue.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -47,7 +47,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_03.ttf",
+          "file": "Pacifico.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -65,7 +65,7 @@
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
       "fontAssets": [
         {
-          "file": "fw_face_04.ttf",
+          "file": "Roboto Slab.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -83,7 +83,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_05.ttf",
+          "file": "EB Garamond.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -101,7 +101,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_06.ttf",
+          "file": "Libre Baskerville.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -119,7 +119,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_07.ttf",
+          "file": "Cormorant Garamond.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -137,7 +137,7 @@
       "licenseUrl": "https://greekfontsociety-gfs.gr/",
       "fontAssets": [
         {
-          "file": "fw_face_08.ttf",
+          "file": "GFS Didot.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -155,7 +155,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_09.ttf",
+          "file": "Inter.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -173,7 +173,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_10.ttf",
+          "file": "Work Sans.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -191,7 +191,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_11.ttf",
+          "file": "IBM Plex Sans.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -209,7 +209,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_12.ttf",
+          "file": "Public Sans.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -227,7 +227,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_13.ttf",
+          "file": "Jost.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -245,7 +245,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_14.ttf",
+          "file": "Montserrat.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -263,7 +263,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_15.ttf",
+          "file": "Manrope.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -281,7 +281,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_16.ttf",
+          "file": "Lato.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -299,7 +299,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_17.ttf",
+          "file": "Bungee.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -317,7 +317,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_18.ttf",
+          "file": "Bowlby One SC.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -335,7 +335,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_19.ttf",
+          "file": "Shrikhand.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
@@ -353,7 +353,7 @@
       "licenseUrl": "https://openfontlicense.org/",
       "fontAssets": [
         {
-          "file": "fw_face_20.ttf",
+          "file": "Cinzel.ttf",
           "format": "truetype",
           "weight": 400,
           "style": "normal"
