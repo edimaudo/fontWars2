@@ -1,8 +1,7 @@
-# fontWars — Devvit Web
+# fontWars
 
-A Reddit-native daily typeface identification duel. Five deterministic rounds, twelve seconds per round, four live font choices, a crowd reveal, and a compact result sheet.
+A Reddit-native daily font identification duel. Five deterministic rounds, twelve seconds per round, four live font choices, a crowd reveal, and a compact result sheet.
 
-This is an implementation of the supplied `fontWars` PRD, using React + TypeScript in the Devvit Web client, a Hono server, and subreddit-scoped Redis state.
 
 ## What's implemented
 
