@@ -253,7 +253,7 @@ function GameApp() {
                   >
                     <span className="option-number">0{index + 1}</span>
                     <strong style={{ fontFamily: `"${option.renderFamily}", ${option.fallbackCss}`, fontWeight: option.assetWeight as React.CSSProperties['fontWeight'], fontStyle: option.assetStyle, fontSynthesis: 'none' }}>{option.name}</strong>
-                    <span className="option-meta">{option.foundry} · {option.year}</span>
+                    <span className="option-meta">{option.assetFormat === 'opentype' ? 'OTF' : 'TTF'}</span>
                   </button>
                 ))}
               </div>

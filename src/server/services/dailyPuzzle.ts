@@ -1,25 +1,30 @@
 import { createHash } from 'node:crypto';
-import fontCatalog from '../../../assets/font_catalog.json';
 import fridayThemes from '../../../assets/friday_themes.json';
 import { formatEdition } from '../../shared/format';
 import { mulberry32, pick, shuffle } from '../../shared/random';
 import type {
   DailyPuzzle,
   DailyPuzzleRound,
-  FontCluster,
   FontRecord,
-  FontAssetRecord,
   SafeFontOption,
   SafeTargetSpecimen,
 } from '../../shared/types';
+import { discoveredFonts, specimenWords } from '../generated-content';
 import { VOLUME_EPOCH } from '../config';
 
-const fonts = fontCatalog.fonts as FontRecord[];
-const clusters = fontCatalog.clusters as FontCluster[];
+export interface ContentLibrary {
+  fonts: FontRecord[];
+  words: string[];
+}
+
+const defaultLibrary: ContentLibrary = {
+  fonts: discoveredFonts,
+  words: specimenWords,
+};
+
 const themeCatalog = fridayThemes.themes as Array<{
   id: string;
   label: string;
-  clusterId: string;
   triviaTitle: string;
   triviaNote: string;
 }>;
@@ -36,36 +41,57 @@ export function hashSeed(date: string, salt: string): number {
   return Number.parseInt(digest.slice(0, 8), 16) >>> 0;
 }
 
-export function generateDailyPuzzle(date: string, salt: string): DailyPuzzle {
+function buildRound(
+  roundNumber: number,
+  fonts: FontRecord[],
+  phrase: string,
+  rng: () => number,
+): DailyPuzzleRound {
+  const roundFonts = shuffle(fonts, rng).slice(0, 4);
+  const targetFontId = pick(roundFonts, rng).id;
+  return {
+    round: roundNumber,
+    category: 'TYPEFACE IDENTIFICATION',
+    difficulty: `ROUND ${roundNumber} OF 5`,
+    phrase,
+    instruction: 'Compare the letterforms and identify the typeface used above.',
+    targetFontId,
+    optionFontIds: shuffle(roundFonts.map((font) => font.id), rng),
+    diagnosticNote: 'Compare the proportions, letter shapes, counters, terminals and spacing across the four typefaces.',
+  };
+}
+
+export function generateDailyPuzzle(
+  date: string,
+  salt: string,
+  library: ContentLibrary = defaultLibrary,
+): DailyPuzzle {
+  if (library.fonts.length < 4) {
+    throw new Error(`fontWars needs at least 4 font files in public/fonts/. Found ${library.fonts.length}.`);
+  }
+  if (library.words.length < 5) {
+    throw new Error(`fontWars needs at least 5 entries in assets/word_library/words.txt. Found ${library.words.length}.`);
+  }
+
   const seed = hashSeed(date, salt);
   const rng = mulberry32(seed);
   const weekday = new Date(`${date}T00:00:00.000Z`).getUTCDay();
   const isFriday = weekday === 5;
+  const dailyWords = shuffle([...library.words], rng).slice(0, 5);
 
   const rounds: DailyPuzzleRound[] = [];
-  for (let roundNumber = 1; roundNumber <= 4; roundNumber += 1) {
-    const available = clusters.filter((cluster) => cluster.round === roundNumber);
-    const cluster = pick(available, rng);
-    rounds.push(buildRound(cluster, roundNumber, rng));
+  for (let roundNumber = 1; roundNumber <= 5; roundNumber += 1) {
+    rounds.push(buildRound(roundNumber, library.fonts, dailyWords[roundNumber - 1]!, rng));
   }
 
-  let finalCluster: FontCluster;
   let finalTheme: (typeof themeCatalog)[number] | undefined;
   if (isFriday && themeCatalog.length > 0) {
     finalTheme = pick(themeCatalog, rng);
-    finalCluster = clusters.find((cluster) => cluster.id === finalTheme!.clusterId)!;
-  } else {
-    const available = clusters.filter((cluster) => cluster.round === 5);
-    finalCluster = pick(available, rng);
-  }
-
-  const finalRound = buildRound(finalCluster, 5, rng);
-  if (finalTheme) {
+    const finalRound = rounds[4]!;
     finalRound.fridayTheme = finalTheme.label;
     finalRound.triviaTitle = finalTheme.triviaTitle;
     finalRound.triviaNote = finalTheme.triviaNote;
   }
-  rounds.push(finalRound);
 
   return {
     date,
@@ -75,25 +101,8 @@ export function generateDailyPuzzle(date: string, salt: string): DailyPuzzle {
   };
 }
 
-function buildRound(cluster: FontCluster, round: number, rng: () => number): DailyPuzzleRound {
-  const targetFontId = pick(cluster.fontIds, rng);
-  return {
-    round,
-    clusterId: cluster.id,
-    category: cluster.category,
-    difficulty: cluster.difficulty,
-    phrase: cluster.phrase,
-    instruction: cluster.instruction,
-    targetFontId,
-    optionFontIds: shuffle(cluster.fontIds, rng),
-    diagnosticNote: cluster.diagnostics[targetFontId] ?? 'Inspect the letterforms, spacing and terminals closely.',
-    triviaTitle: cluster.triviaTitle,
-    triviaNote: cluster.triviaNote,
-  };
-}
-
-export function getFont(fontId: string): FontRecord {
-  const font = fonts.find((item) => item.id === fontId);
+export function getFont(fontId: string, library: ContentLibrary = defaultLibrary): FontRecord {
+  const font = library.fonts.find((item) => item.id === fontId);
   if (!font) throw new Error(`Unknown font id: ${fontId}`);
   return font;
 }
@@ -106,59 +115,48 @@ function aliasFor(date: string, round: number, fontId: string, role: 'option' | 
   return role === 'specimen' ? `fw_spec_${suffix}` : `fw_choice_${suffix}`;
 }
 
-export function getPrimaryFontAsset(font: FontRecord): FontAssetRecord {
-  const asset = font.fontAssets.find((item) => Number(item.weight) === 400 && item.style === 'normal')
-    ?? font.fontAssets.find((item) => item.style === 'normal')
-    ?? font.fontAssets[0];
-  if (!asset) throw new Error(`No font assets configured for ${font.id}.`);
-  // Use the typeface's actual name as its filename, including spaces.
-  // Supported pairs are `<Font Name>.ttf` + `truetype` and
-  // `<Font Name>.otf` + `opentype`.
-  const extension = asset.format === 'truetype' ? '.ttf'
-    : asset.format === 'opentype' ? '.otf'
+export function getPrimaryFontAsset(font: FontRecord) {
+  const extension = font.file.toLowerCase().endsWith('.ttf') ? '.ttf'
+    : font.file.toLowerCase().endsWith('.otf') ? '.otf'
       : null;
-  if (!extension) {
-    throw new Error(`Font asset format for ${font.id} must be truetype or opentype.`);
+  if (!extension) throw new Error(`Unsupported font file for ${font.name}: ${font.file}`);
+  const expectedFormat = extension === '.ttf' ? 'truetype' : 'opentype';
+  if (font.format !== expectedFormat) {
+    throw new Error(`Font format does not match the extension for ${font.file}.`);
   }
-  const expectedFile = `${font.name}${extension}`;
-  if (asset.file !== expectedFile) {
-    throw new Error(`Font asset filename for ${font.id} must be exactly "${expectedFile}".`);
-  }
-  return asset;
+  return {
+    file: font.file,
+    format: font.format,
+    weight: 400,
+    style: 'normal' as const,
+  };
 }
 
-function assetFormatForCss(format: FontAssetRecord['format']): string {
-  return format;
-}
-
-export function safeFontOption(date: string, round: number, fontId: string): SafeFontOption {
-  const font = getFont(fontId);
+export function safeFontOption(date: string, round: number, fontId: string, library: ContentLibrary = defaultLibrary): SafeFontOption {
+  const font = getFont(fontId, library);
   const asset = getPrimaryFontAsset(font);
   return {
     id: font.id,
     name: font.name,
-    designer: font.designer,
-    year: font.year,
-    foundry: font.foundry,
     renderFamily: aliasFor(date, round, fontId, 'option'),
     assetUrl: `/fonts/${encodeURIComponent(asset.file)}`,
-    assetFormat: assetFormatForCss(asset.format),
+    assetFormat: asset.format,
     assetWeight: String(asset.weight),
     assetStyle: asset.style,
-    fallbackCss: font.fallbackCss,
+    fallbackCss: 'sans-serif',
   };
 }
 
-export function safeTargetSpecimen(date: string, round: number, fontId: string): SafeTargetSpecimen {
-  const font = getFont(fontId);
+export function safeTargetSpecimen(date: string, round: number, fontId: string, library: ContentLibrary = defaultLibrary): SafeTargetSpecimen {
+  const font = getFont(fontId, library);
   const asset = getPrimaryFontAsset(font);
   return {
     renderFamily: aliasFor(date, round, fontId, 'specimen'),
     assetUrl: `/fonts/${encodeURIComponent(asset.file)}`,
-    assetFormat: assetFormatForCss(asset.format),
+    assetFormat: asset.format,
     assetWeight: String(asset.weight),
     assetStyle: asset.style,
-    fallbackCss: font.fallbackCss,
+    fallbackCss: 'sans-serif',
   };
 }
 
@@ -168,14 +166,14 @@ export function getRoundContent(puzzle: DailyPuzzle, round: number): DailyPuzzle
   return content;
 }
 
-export function getRoundFontOptions(puzzle: DailyPuzzle, round: number): SafeFontOption[] {
+export function getRoundFontOptions(puzzle: DailyPuzzle, round: number, library: ContentLibrary = defaultLibrary): SafeFontOption[] {
   const content = getRoundContent(puzzle, round);
-  return content.optionFontIds.map((fontId) => safeFontOption(puzzle.date, round, fontId));
+  return content.optionFontIds.map((fontId) => safeFontOption(puzzle.date, round, fontId, library));
 }
 
-export function getTargetSpecimen(puzzle: DailyPuzzle, round: number): SafeTargetSpecimen {
+export function getTargetSpecimen(puzzle: DailyPuzzle, round: number, library: ContentLibrary = defaultLibrary): SafeTargetSpecimen {
   const content = getRoundContent(puzzle, round);
-  return safeTargetSpecimen(puzzle.date, round, content.targetFontId);
+  return safeTargetSpecimen(puzzle.date, round, content.targetFontId, library);
 }
 
 export function formatVolumeLabel(edition: number): string {

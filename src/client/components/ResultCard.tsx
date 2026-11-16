@@ -99,8 +99,8 @@ export function ResultCard({ game, onRefresh }: Props) {
           const entry = game.results[selected];
           return (
             <div className="specimen-drawer">
-              <div className="drawer-head"><b>{entry.font.name}</b><span>{entry.font.year} · {entry.font.foundry}</span></div>
-              <p>{entry.font.designer} designed this face. {entry.result.diagnosticNote}</p>
+              <div className="drawer-head"><b>{entry.font.name}</b><span>{entry.font.file}</span></div>
+              <p>{entry.result.diagnosticNote}</p>
               <div className="drawer-foot"><span>CROWD ACCURACY</span><b>{entry.crowdAccuracy}%</b></div>
               {entry.result.triviaTitle && <p className="drawer-trivia"><b>{entry.result.triviaTitle}.</b> {entry.result.triviaNote}</p>}
             </div>

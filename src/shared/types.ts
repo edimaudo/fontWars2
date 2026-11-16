@@ -3,41 +3,17 @@ export type GameStatus = 'UNSTARTED' | 'IN_PROGRESS' | 'COMPLETED';
 export type FontAssetFormat = 'truetype' | 'opentype';
 export type FontAssetStyle = 'normal' | 'italic' | 'oblique';
 
-export interface FontAssetRecord {
-  file: string;
-  format: FontAssetFormat;
-  weight: number | string;
-  style: FontAssetStyle;
-}
-
+// Discovered automatically from files in public/fonts. No hand-maintained
+// font catalogue or per-font metadata is required.
 export interface FontRecord {
   id: string;
   name: string;
-  designer: string;
-  year: number;
-  foundry: string;
-  fontAssets: FontAssetRecord[];
-  fallbackCss: string;
-  license: string;
-  licenseUrl: string;
-}
-
-export interface FontCluster {
-  id: string;
-  round: number;
-  category: string;
-  difficulty: string;
-  fontIds: string[];
-  phrase: string;
-  instruction: string;
-  diagnostics: Record<string, string>;
-  triviaTitle?: string;
-  triviaNote?: string;
+  file: string;
+  format: FontAssetFormat;
 }
 
 export interface DailyPuzzleRound {
   round: number;
-  clusterId: string;
   category: string;
   difficulty: string;
   phrase: string;
@@ -92,9 +68,6 @@ export interface SessionState {
 export interface SafeFontOption {
   id: string;
   name: string;
-  designer: string;
-  year: number;
-  foundry: string;
   renderFamily: string;
   assetUrl: string;
   assetFormat: FontAssetFormat;

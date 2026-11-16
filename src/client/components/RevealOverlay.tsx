@@ -17,7 +17,7 @@ export function RevealOverlay({ reveal, onNext, lastRound }: Props) {
       </div>
       <div className="reveal-answer">
         <strong>{correctFont.name}</strong>
-        <span>{correctFont.designer} · {correctFont.year} · {correctFont.foundry}</span>
+        <span>{correctFont.file}</span>
       </div>
       <div className="option-grid option-grid-reveal" aria-label="Answer and subreddit crowd split">
         {options.map((option) => {
@@ -26,7 +26,7 @@ export function RevealOverlay({ reveal, onNext, lastRound }: Props) {
           return (
             <div className={`font-option reveal-option ${isCorrect ? 'reveal-option-correct' : isSelectedMiss ? 'reveal-option-missed' : 'reveal-option-dim'}`} key={option.id}>
               <strong style={{ fontFamily: `"${option.renderFamily}", ${option.fallbackCss}`, fontWeight: option.assetWeight as React.CSSProperties['fontWeight'], fontStyle: option.assetStyle, fontSynthesis: 'none' }}>{option.name}</strong>
-              <span className="option-meta">{option.foundry} · {option.year}</span>
+              <span className="option-meta">{option.assetFormat === 'opentype' ? 'OpenType · OTF' : 'TrueType · TTF'}</span>
               <div className="reveal-option-bar"><i style={{ width: `${crowdPercentages[option.id] ?? 0}%` }} /></div>
               <span className="reveal-option-percent">{crowdPercentages[option.id] ?? 0}% picked</span>
               {isCorrect && <span className="answer-stamp">✓ MATCH</span>}

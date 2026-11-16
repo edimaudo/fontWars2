@@ -2,8 +2,10 @@
   "name": "fontwars",
   "version": "1.0.0",
   "private": true,
-  "description": "fontWars — a daily typographic identification duel for Reddit Devvit Web",
-  "engines": { "node": ">=24.18.0" },
+  "description": "fontWars \u2014 a daily typographic identification duel for Reddit Devvit Web",
+  "engines": {
+    "node": ">=24.18.0"
+  },
   "scripts": {
     "dev": "devvit playtest",
     "build:client": "vite build",
@@ -13,7 +15,11 @@
     "test": "vitest run",
     "deploy": "npm run build && devvit upload",
     "launch": "npm run build && devvit publish",
-    "login": "devvit login"
+    "login": "devvit login",
+    "content:generate": "node scripts/generate-content-manifest.mjs",
+    "predev": "node scripts/generate-content-manifest.mjs --strict",
+    "prebuild": "node scripts/generate-content-manifest.mjs --strict",
+    "pretest": "node scripts/generate-content-manifest.mjs"
   },
   "dependencies": {
     "@devvit/analytics": "^0.15.0",
