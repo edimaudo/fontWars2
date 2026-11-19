@@ -1,4 +1,12 @@
 import type { ActiveRoundPayload, ApiError, InitPayload, RevealPayload } from '../shared/types';
+import { isWebPreview } from './platform';
+import {
+  previewDeleteData,
+  previewLeaderboard,
+  previewLoadGame,
+  previewStartRound,
+  previewSubmitAnswer,
+} from './webPreview';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
@@ -17,29 +25,31 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export function loadGame(): Promise<InitPayload> {
-  return request<InitPayload>('/api/init');
+  return isWebPreview() ? previewLoadGame() : request<InitPayload>('/api/init');
 }
 
 export async function startRound(): Promise<{ status: string; activeRound: ActiveRoundPayload | null }> {
-  return request('/api/round/start', { method: 'POST', body: '{}' });
+  return isWebPreview() ? previewStartRound() : request('/api/round/start', { method: 'POST', body: '{}' });
 }
 
 export function submitAnswer(selectedFontId: string | null, round: number): Promise<RevealPayload> {
-  return request('/api/round/submit', {
-    method: 'POST',
-    body: JSON.stringify({ selectedFontId, round }),
-  });
+  return isWebPreview()
+    ? previewSubmitAnswer(selectedFontId, round)
+    : request('/api/round/submit', { method: 'POST', body: JSON.stringify({ selectedFontId, round }) });
 }
 
 export function shareResult(): Promise<{ posted: boolean; alreadyPosted?: boolean }> {
+  if (isWebPreview()) return Promise.reject(new Error('Reddit comment sharing is available in the installed Devvit version, not the browser preview.'));
   return request('/api/share', { method: 'POST', body: '{}' });
 }
 
 export function equipFlair(flair: string): Promise<{ equipped: boolean; flair: string }> {
+  if (isWebPreview()) return Promise.reject(new Error('Reddit flair is available only in the installed Devvit version.'));
   return request('/api/flair', { method: 'POST', body: JSON.stringify({ flair }) });
 }
 
 export function setNotifications(enabled: boolean): Promise<{ available: boolean; optedIn: boolean; message?: string }> {
+  if (isWebPreview()) return Promise.resolve({ available: false, optedIn: false, message: 'Reddit reminders are not available in the browser preview.' });
   return request('/api/notifications', { method: 'POST', body: JSON.stringify({ enabled }) });
 }
 
@@ -129,9 +139,9 @@ export interface LeaderboardPayload {
 }
 
 export function loadLeaderboard(): Promise<LeaderboardPayload> {
-  return request<LeaderboardPayload>('/api/leaderboard');
+  return isWebPreview() ? previewLeaderboard() : request<LeaderboardPayload>('/api/leaderboard');
 }
 
 export function deleteMyGameData(): Promise<{ deleted: boolean; note: string }> {
-  return request('/api/privacy/delete-me', { method: 'POST', body: '{}' });
+  return isWebPreview() ? previewDeleteData() : request('/api/privacy/delete-me', { method: 'POST', body: '{}' });
 }

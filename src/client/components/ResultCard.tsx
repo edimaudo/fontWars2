@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import type { InitPayload } from '../../shared/types';
 import { formatEdition, formatScore } from '../../shared/format';
 import { deleteMyGameData, equipFlair, loadLeaderboard, setNotifications, shareResult } from '../api';
+import { isWebPreview } from '../platform';
+import { resetWebPreview } from '../webPreview';
 
 interface Props {
   game: InitPayload;
@@ -97,7 +99,7 @@ export function ResultCard({ game, onRefresh }: Props) {
         <header className="game-brand-row"><div className="wordmark">font<span>Wars</span></div></header>
         <section className="privacy-confirmed" role="status" aria-live="polite">
           <h1>Game data deleted</h1>
-          <p>Your fontWars profile and linked game records have been removed. Reddit comments you previously posted remain under Reddit’s controls.</p>
+          <p>{isWebPreview() ? 'Your browser-local preview session has been removed.' : 'Your fontWars profile and linked game records have been removed. Reddit comments you previously posted remain under Reddit’s controls.'}</p>
         </section>
       </main>
     );
@@ -118,7 +120,7 @@ export function ResultCard({ game, onRefresh }: Props) {
           {game.streak > 0 && <span>{game.streak} day streak</span>}
         </div>
         <div className="score-bar"><i style={{ width: `${scorePercent}%` }} /></div>
-        <p className="score-subline">{completed} specimens inspected · {game.playerCount.toLocaleString('en-US')} completed players · score rate {scorePercent}%</p>
+        <p className="score-subline">{isWebPreview() ? `${completed} specimens inspected · browser-only practice` : `${completed} specimens inspected · ${game.playerCount.toLocaleString('en-US')} completed players · score rate ${scorePercent}%`}</p>
       </section>
 
       <section className="answer-strip-section">
@@ -144,7 +146,7 @@ export function ResultCard({ game, onRefresh }: Props) {
             <div className="specimen-drawer">
               <div className="drawer-head"><b>{entry.font.name}</b><span>{entry.font.file}</span></div>
               <p>{entry.result.diagnosticNote}</p>
-              <div className="drawer-foot"><span>CROWD ACCURACY</span><b>{entry.crowdAccuracy}%</b></div>
+              <div className="drawer-foot"><span>{isWebPreview() ? 'COMMUNITY ACCURACY' : 'CROWD ACCURACY'}</span><b>{isWebPreview() ? 'Devvit only' : `${entry.crowdAccuracy}%`}</b></div>
               {entry.result.triviaTitle && <p className="drawer-trivia"><b>{entry.result.triviaTitle}.</b> {entry.result.triviaNote}</p>}
             </div>
           );
@@ -152,10 +154,10 @@ export function ResultCard({ game, onRefresh }: Props) {
       </section>
 
       <section className="community-actions">
-        <button className="primary-button" onClick={postResult} disabled={posted || sharing}>
-          {posted ? 'Posted ✓' : sharing ? 'Posting…' : 'Post result to comments'}<span aria-hidden="true">↗</span>
+        <button className="primary-button" onClick={postResult} disabled={isWebPreview() || posted || sharing}>
+          {isWebPreview() ? 'Reddit sharing requires Devvit' : posted ? 'Posted ✓' : sharing ? 'Posting…' : 'Post result to comments'}<span aria-hidden="true">↗</span>
         </button>
-        <p className="action-explainer">Replies with your score to the pinned daily fontWars thread as u/{game.username}. Nothing is posted until you tap.</p>
+        <p className="action-explainer">{isWebPreview() ? 'This browser preview does not connect to Reddit. Comment sharing is tested after installing fontWars on Devvit.' : `Replies with your score to the pinned daily fontWars thread as u/${game.username}. Nothing is posted until you tap.`}</p>
       </section>
 
       {!game.isArchive && (
@@ -209,6 +211,7 @@ export function ResultCard({ game, onRefresh }: Props) {
         )}
       </section>
       {message && <p className="inline-error" role="status">{message}</p>}
+      {isWebPreview() && <button className="replay-link" onClick={() => { resetWebPreview(); window.location.assign('/'); }}>Reset browser preview ↻</button>}
       <button className="replay-link" onClick={() => onRefresh()}>Refresh result ↻</button>
       <p className="result-footnote">fontWars / A daily typographic study</p>
     </main>

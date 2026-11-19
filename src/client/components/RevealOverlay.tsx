@@ -1,6 +1,7 @@
 import React from 'react';
 import type { RevealPayload } from '../../shared/types';
 import { AnatomyCallouts } from './AnatomyCallouts';
+import { isWebPreview } from '../platform';
 
 interface Props {
   reveal: RevealPayload;
@@ -31,8 +32,8 @@ export function RevealOverlay({ reveal, onNext, lastRound, targetFamily, targetW
             <div className={`font-option reveal-option ${isCorrect ? 'reveal-option-correct' : isSelectedMiss ? 'reveal-option-missed' : 'reveal-option-dim'}`} key={option.id}>
               <strong style={{ fontFamily: `"${option.renderFamily}", ${option.fallbackCss}`, fontWeight: option.assetWeight as React.CSSProperties['fontWeight'], fontStyle: option.assetStyle, fontSynthesis: 'none' }}>{option.name}</strong>
               <span className="option-meta">{option.assetFormat === 'opentype' ? 'OpenType · OTF' : 'TrueType · TTF'}</span>
-              <div className="reveal-option-bar"><i style={{ width: `${crowdPercentages[option.id] ?? 0}%` }} /></div>
-              <span className="reveal-option-percent">{crowdPercentages[option.id] ?? 0}% picked</span>
+              {!isWebPreview() && <div className="reveal-option-bar"><i style={{ width: `${crowdPercentages[option.id] ?? 0}%` }} /></div>}
+              <span className="reveal-option-percent">{isWebPreview() ? 'Community split available in Devvit' : `${crowdPercentages[option.id] ?? 0}% picked`}</span>
               {isCorrect && <span className="answer-stamp">✓ MATCH</span>}
               {isSelectedMiss && <span className="answer-stamp">× YOUR PICK</span>}
             </div>

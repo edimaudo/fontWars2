@@ -8,6 +8,8 @@
   },
   "scripts": {
     "dev": "devvit playtest",
+    "dev:web-preview": "npm run content:generate && vite --host 0.0.0.0 --mode web-preview",
+    "build:web-preview": "npm run content:generate -- --strict && vite build --mode web-preview",
     "build:client": "vite build",
     "build:server": "esbuild src/server/index.ts --bundle --platform=node --format=cjs --target=node22 --external:@devvit/* --external:hono --outfile=dist/server/index.js",
     "build": "npm run typecheck && npm run build:client && npm run build:server",
@@ -19,7 +21,8 @@
     "content:generate": "node scripts/generate-content-manifest.mjs",
     "predev": "node scripts/generate-content-manifest.mjs --strict",
     "prebuild": "node scripts/generate-content-manifest.mjs --strict",
-    "pretest": "node scripts/generate-content-manifest.mjs"
+    "pretest": "node scripts/generate-content-manifest.mjs",
+    "dev:watch": "node scripts/watch-devvit.mjs"
   },
   "dependencies": {
     "@devvit/analytics": "^0.15.0",

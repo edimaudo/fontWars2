@@ -8,6 +8,7 @@ import { SpecimenCanvas } from './components/SpecimenCanvas';
 import { RevealOverlay } from './components/RevealOverlay';
 import { ResultCard } from './components/ResultCard';
 import { hasDismissedFirstRoundHint, persistFirstRoundHintDismissal } from './onboarding';
+import { isWebPreview } from './platform';
 import './styles.css';
 
 const ROUND_MS = 12_000;
@@ -226,6 +227,7 @@ function GameApp() {
       onPointerDownCapture={() => { if (round?.round === 1 && firstRoundHintVisible) dismissFirstRoundHint(); }}
       onKeyDownCapture={() => { if (round?.round === 1 && firstRoundHintVisible) dismissFirstRoundHint(); }}
     >
+      {isWebPreview() && <p className="web-preview-banner" role="status">WEB PREVIEW · Browser-local practice session. Reddit community features are disabled.</p>}
       <header className="game-header">
         <div className="game-brand-row">
           <div className="wordmark">font<span>Wars</span></div>

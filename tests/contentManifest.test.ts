@@ -22,7 +22,7 @@ function makeSfnt(seed: number, outline = 'glyf'): Buffer {
   return buffer;
 }
 
-function runManifest(fontFiles: Array<{ name: string; bytes: Buffer }>, words = '"one", "two", "three", "four", "five"'): { status: number; output: string; manifest?: string } {
+function runManifest(fontFiles: Array<{ name: string; bytes: Buffer }>, words = '"one", "two", "three", "four", "five"'): { status: number; output: string; manifest?: string; previewContent?: string } {
   const root = mkdtempSync(path.join(tmpdir(), 'fontwars-manifest-'));
   try {
     mkdirSync(path.join(root, 'scripts'), { recursive: true });
@@ -45,7 +45,13 @@ function runManifest(fontFiles: Array<{ name: string; bytes: Buffer }>, words = 
       output = `${error.stdout ?? ''}${error.stderr ?? ''}`;
     }
     const manifestPath = path.join(root, 'src', 'server', 'generated-content.ts');
-    return { status, output, manifest: existsSync(manifestPath) ? readFileSync(manifestPath, 'utf8') : undefined };
+    const previewPath = path.join(root, 'public', 'preview-content.json');
+    return {
+      status,
+      output,
+      manifest: existsSync(manifestPath) ? readFileSync(manifestPath, 'utf8') : undefined,
+      previewContent: existsSync(previewPath) ? readFileSync(previewPath, 'utf8') : undefined,
+    };
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -63,6 +69,9 @@ describe('generated font and word manifest', () => {
     expect(result.manifest).toContain('Alpha');
     expect(result.manifest).toContain('Bravo');
     expect(result.manifest).toContain('"one"');
+    expect(result.previewContent).toContain('"fonts"');
+    expect(result.previewContent).toContain('"words"');
+    expect(result.previewContent).toContain('"Alpha.ttf"');
     expect(result.output).toContain('Discovered 4 font file(s) and 5 specimen word(s).');
   });
 

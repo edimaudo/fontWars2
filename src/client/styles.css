@@ -307,3 +307,8 @@ button:disabled { cursor: not-allowed; opacity: .55; }
   .font-option strong { overflow-wrap: anywhere; }
   .leaderboard-list li > span { overflow-wrap: anywhere; }
 }
+
+
+/* Standalone web preview indicator. */
+.web-preview-banner { margin: 0; padding: 8px 10px; border: 1px solid rgba(240,184,93,.42); background: rgba(240,184,93,.10); color: #f0c987; font: 10px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .045em; }
+.splash-shell > .web-preview-banner { margin-bottom: -2px; }

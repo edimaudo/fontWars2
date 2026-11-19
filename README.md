@@ -32,6 +32,11 @@ This is an implementation of the supplied `fontWars` PRD, using React + TypeScri
 - A Reddit account and a subreddit where you have moderator access for installation and testing.
 - The current Devvit CLI and access to Devvit playtesting.
 
+## Deployments
+
+- [Vercel browser preview](docs/VERCEL_WEB_PREVIEW.md): static browser-only preview for checking supplied fonts, the five-round flow and responsive UI. Reddit services are disabled.
+- [Reddit Devvit deployment](docs/DEVVIT_DEPLOYMENT.md): private playtesting, settings, Reddit review and installation in a subreddit.
+
 ## Run locally and playtest
 
 ```bash
@@ -44,7 +49,7 @@ npm run build
 npm run dev
 ```
 
-`npm run dev` starts `devvit playtest`. Follow the CLI prompts to choose the test subreddit. The application runs inside Reddit's Devvit Web post surface; it is not a standalone public website.
+`npm run dev` starts `devvit playtest` for the Reddit-hosted app. The `devvit.json` scripts run Vite and esbuild watchers so both client and server bundles rebuild during playtesting. For a standalone browser-only build, run `npm run dev:web-preview` or use the [Vercel browser preview guide](docs/VERCEL_WEB_PREVIEW.md). The Vercel preview does not run the Devvit backend or Reddit integrations.
 
 ## Configure the app
 
@@ -73,7 +78,7 @@ Put your own words and phrases in `assets/word_library/words.txt` as comma-separ
 
 ### Content discovery
 
-The build process scans the font folder and reads the word list, then generates `src/server/generated-content.ts`. This file is internal build output; do not edit it manually. `npm run build` and `npm run dev` refresh it automatically. The game requires at least four font files and five word-list entries.
+The content generator scans the font folder and reads the word list, then generates `src/server/generated-content.ts` and `public/preview-content.json`. Both are generated build output; do not edit them manually. `npm run build`, `npm run dev`, and the Vercel preview build refresh them automatically. The game requires at least four font files and five word-list entries.
 
 ## Important platform notes
 

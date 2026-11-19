@@ -1,4 +1,4 @@
-import { telemetry } from '@devvit/analytics/client/reddit';
+import { isWebPreview } from './platform';
 
 type JourneyEvent = 'App.Ready' | 'Journey.Start' | 'Journey.Progress' | 'Journey.End';
 
@@ -25,9 +25,10 @@ async function verifyRedisReceipt(event: JourneyEvent, detail: { round?: number;
   }
 }
 
-async function inspectPlatformReceipt(event: JourneyEvent, action: () => Promise<unknown> | unknown): Promise<void> {
+async function inspectPlatformReceipt(event: JourneyEvent, action: (telemetry: typeof import('@devvit/analytics/client/reddit').telemetry) => Promise<unknown> | unknown): Promise<void> {
   try {
-    const result = await action() as PlatformReceiptResponse | undefined;
+    const { telemetry } = await import('@devvit/analytics/client/reddit');
+    const result = await action(telemetry) as PlatformReceiptResponse | undefined;
     const receipt = result?.receipt;
     if (!receipt) {
       console.warn(`fontWars received no platform receipt for ${event}.`);
@@ -42,20 +43,23 @@ async function inspectPlatformReceipt(event: JourneyEvent, action: () => Promise
 }
 
 export function appReady(): void {
-  void inspectPlatformReceipt('App.Ready', () => telemetry.appReady());
+  if (isWebPreview()) return;
+  void inspectPlatformReceipt('App.Ready', (telemetry) => telemetry.appReady());
   void verifyRedisReceipt('App.Ready');
 }
 
 export async function journeyStart(): Promise<void> {
+  if (isWebPreview()) return;
   await Promise.allSettled([
-    inspectPlatformReceipt('Journey.Start', () => telemetry.startJourney()),
+    inspectPlatformReceipt('Journey.Start', (telemetry) => telemetry.startJourney()),
     verifyRedisReceipt('Journey.Start'),
   ]);
 }
 
 export async function journeyProgress(round: number): Promise<void> {
+  if (isWebPreview()) return;
   await Promise.allSettled([
-    inspectPlatformReceipt('Journey.Progress', () => telemetry.progress({
+    inspectPlatformReceipt('Journey.Progress', (telemetry) => telemetry.progress({
       progress: Math.min(1, round / 5),
       action: 'specimen_answered',
     })),
@@ -64,8 +68,9 @@ export async function journeyProgress(round: number): Promise<void> {
 }
 
 export async function journeyEnd(score: number): Promise<void> {
+  if (isWebPreview()) return;
   await Promise.allSettled([
-    inspectPlatformReceipt('Journey.End', () => telemetry.endJourney({ complete: true, game: { win: score > 0, score } })),
+    inspectPlatformReceipt('Journey.End', (telemetry) => telemetry.endJourney({ complete: true, game: { win: score > 0, score } })),
     verifyRedisReceipt('Journey.End', { score }),
   ]);
 }
