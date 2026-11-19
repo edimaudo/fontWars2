@@ -1,42 +1,25 @@
-# fontWars font library
+# Font library
 
-Place each licensed TrueType (`.ttf`) or OpenType (`.otf`) font in this directory using its actual typeface name as the filename. The filename must match the catalogue name exactly, followed by the matching extension.
+Place the font files you want fontWars to use directly in this folder:
 
-Examples:
-- `Inter.ttf`
-- `Playfair Display.otf`
-- `Bowlby One SC.ttf`
+- TrueType: `.ttf`
+- OpenType: `.otf`
 
-## Current catalogue filenames
+Use the typeface's name as the filename. For example:
 
-| Font | Required filename |
-|---|---|
-| Playfair Display | `Playfair Display.ttf` |
-| Bebas Neue | `Bebas Neue.ttf` |
-| Pacifico | `Pacifico.ttf` |
-| Roboto Slab | `Roboto Slab.ttf` |
-| EB Garamond | `EB Garamond.ttf` |
-| Libre Baskerville | `Libre Baskerville.ttf` |
-| Cormorant Garamond | `Cormorant Garamond.ttf` |
-| GFS Didot | `GFS Didot.ttf` |
-| Inter | `Inter.ttf` |
-| Work Sans | `Work Sans.ttf` |
-| IBM Plex Sans | `IBM Plex Sans.ttf` |
-| Public Sans | `Public Sans.ttf` |
-| Jost | `Jost.ttf` |
-| Montserrat | `Montserrat.ttf` |
-| Manrope | `Manrope.ttf` |
-| Lato | `Lato.ttf` |
-| Bungee | `Bungee.ttf` |
-| Bowlby One SC | `Bowlby One SC.ttf` |
-| Shrikhand | `Shrikhand.ttf` |
-| Cinzel | `Cinzel.ttf` |
+```text
+Inter.ttf
+Playfair Display.otf
+Bowlby One SC.ttf
+IBM Plex Sans.otf
+```
 
-## Adding a font
+The game discovers font files automatically. The filename (without the extension) becomes the typeface label shown to players. There is no `font_catalog.json` to maintain and no numbered filenames or manual metadata are needed.
 
-1. Add the font binary as `<Font Name>.ttf` or `<Font Name>.otf` in this folder, matching the selected format. Preserve spaces and punctuation in the typeface name.
-2. In `assets/font_catalog.json`, set the matching `fontAssets[0].file` to the exact same filename and `format` to `truetype` for `.ttf` or `opentype` for `.otf`.
-3. Keep the font licence and attribution information. Do not add fonts unless their licence permits redistribution in this app.
-4. The server verifies that each catalogue filename exactly matches the font name plus its format-specific extension (`.ttf` for `truetype`, `.otf` for `opentype`). URLs are percent-encoded automatically, so spaces in filenames work in browsers.
+Keep the folder flat rather than placing fonts in subfolders. Use one file per typeface name; do not include both `Typeface Name.ttf` and `Typeface Name.otf` in the same library. The app uses each file as a regular face at weight 400. Other weights and styles are not yet separate choices.
 
-The game does not use numbered or obfuscated filenames for font binaries. Opaque render-family names are still used in CSS to avoid exposing the target font name in the active round payload. A missing or invalid TTF/OTF file blocks the round before its timer starts.
+The content generator checks the TrueType/OpenType file signature, table directory, core character-map/metrics/name tables, glyph-outline table, duplicate names, and identical binary files. These structural checks catch truncated, malformed, or duplicated files; they do not verify browser rendering, glyph coverage for every word, ligature appearance, visual similarity between typefaces, or redistribution rights.
+
+Before adding files, verify that their licences permit redistribution in a Reddit app. Keep any required licence and attribution notices alongside your project assets.
+
+The build process scans this folder and generates an internal manifest automatically. Run `npm run content:generate` to refresh that manifest. `npm run build` and `npm run dev` refresh it automatically and require at least four font files.

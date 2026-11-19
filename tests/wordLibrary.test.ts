@@ -21,7 +21,7 @@ describe('quoted comma-separated word library', () => {
   });
 
   it('supports multiple lines, phrases, and commas inside quoted entries', () => {
-    expect(parseWordList('"aardvark", "office affinity"\r\n"Smith, Jones", "minimum"')).toEqual([
+    expect(parseWordList('"aardvark", "office affinity",\r\n"Smith, Jones", "minimum"')).toEqual([
       'aardvark',
       'office affinity',
       'Smith, Jones',
@@ -37,7 +37,7 @@ describe('quoted comma-separated word library', () => {
   });
 
   it('rejects unquoted entries, missing commas, empty entries, and trailing commas', () => {
-    for (const invalid of ['aardvark, "aardwolf"', '"aardvark" "aardwolf"', '"aardvark", ""', '"aardvark",']) {
+    for (const invalid of ['aardvark, "aardwolf"', '"aardvark" "aardwolf"', '"aardvark"\n"aardwolf"', '"aardvark", ""', '"aardvark",']) {
       expect(() => parseWordList(invalid)).toThrow();
     }
   });

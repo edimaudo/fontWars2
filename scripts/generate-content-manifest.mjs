@@ -60,7 +60,7 @@ export function parseWordListCsv(input) {
   const uniqueEntries = [];
   const seen = new Set();
   for (const word of entries) {
-    const key = word.toLocaleLowerCase();
+    const key = word.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
     uniqueEntries.push(word);
@@ -68,6 +68,50 @@ export function parseWordListCsv(input) {
   return uniqueEntries;
 }
 
+
+/** Validate the SFNT directory before accepting a file as a playable typeface. */
+export function validateFontBuffer(buffer, fileName) {
+  if (!buffer || typeof buffer.length !== 'number' || buffer.length < 12) {
+    throw new Error(`Font file is empty or truncated: ${fileName}`);
+  }
+
+  const signature = buffer.toString('latin1', 0, 4);
+  if (!['\u0000\u0001\u0000\u0000', 'OTTO', 'true', 'typ1'].includes(signature)) {
+    throw new Error(`Font file does not have a valid TrueType/OpenType signature: ${fileName}`);
+  }
+
+  const tableCount = buffer.readUInt16BE(4);
+  const directoryEnd = 12 + tableCount * 16;
+  if (tableCount < 4 || directoryEnd > buffer.length) {
+    throw new Error(`Font table directory is incomplete: ${fileName}`);
+  }
+
+  const tables = new Map();
+  for (let index = 0; index < tableCount; index += 1) {
+    const record = 12 + index * 16;
+    const tag = buffer.toString('ascii', record, record + 4);
+    const offset = buffer.readUInt32BE(record + 8);
+    const length = buffer.readUInt32BE(record + 12);
+    if (!tag.trim() || length === 0 || offset < directoryEnd || offset + length > buffer.length) {
+      throw new Error(`Font table "${tag}" has an invalid offset or length: ${fileName}`);
+    }
+    if (tables.has(tag)) throw new Error(`Font contains a duplicate "${tag}" table: ${fileName}`);
+    tables.set(tag, { offset, length });
+  }
+
+  for (const [tag, minimumLength] of [['cmap', 4], ['head', 54], ['maxp', 6], ['name', 6]]) {
+    const table = tables.get(tag);
+    if (!table || table.length < minimumLength) {
+      throw new Error(`Font is missing a valid ${tag} table: ${fileName}`);
+    }
+  }
+
+  if (!tables.has('glyf') && !tables.has('CFF ') && !tables.has('CFF2')) {
+    throw new Error(`Font has no supported glyph outline table: ${fileName}`);
+  }
+
+  return true;
+}
 
 async function generateContent() {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -81,32 +125,42 @@ async function generateContent() {
   }
 
   const directoryEntries = await readdir(fontsDir, { withFileTypes: true });
-  const fonts = directoryEntries
-    .filter((entry) => entry.isFile() && /\.(ttf|otf)$/i.test(entry.name))
-    .map((entry) => {
-      const file = entry.name;
-      const extension = path.extname(file).toLowerCase();
-      const name = path.basename(file, path.extname(file)).trim();
-      if (!name) throw new Error(`Font file has no usable typeface name: ${file}`);
-      const id = toFontId(name);
-      if (!id) throw new Error(`Font filename cannot be converted to an ID: ${file}`);
-      return {
-        id,
-        name,
-        file,
-        format: extension === '.ttf' ? 'truetype' : 'opentype',
-      };
-    })
+  const fontFiles = directoryEntries.filter((entry) => entry.isFile() && /\.(ttf|otf)$/i.test(entry.name));
+  const fontsWithDigests = await Promise.all(fontFiles.map(async (entry) => {
+    const file = entry.name;
+    const extension = path.extname(file).toLowerCase();
+    const name = path.basename(file, path.extname(file)).trim();
+    if (!name || name.startsWith('.')) throw new Error(`Font file has no usable typeface name: ${file}`);
+    const id = toFontId(name);
+    if (!id) throw new Error(`Font filename cannot be converted to an ID: ${file}`);
+    const bytes = await readFile(path.join(fontsDir, file));
+    validateFontBuffer(bytes, file);
+    return {
+      id,
+      name,
+      file,
+      format: extension === '.ttf' ? 'truetype' : 'opentype',
+      digest: createHash('sha256').update(bytes).digest('hex'),
+    };
+  }));
+  const fonts = fontsWithDigests
+    .map(({ digest: _digest, ...font }) => font)
     .sort((a, b) => a.name.localeCompare(b.name));
 
   const seenNames = new Map();
-  for (const font of fonts) {
-    const key = font.name.normalize('NFKC').toLocaleLowerCase();
-    const prior = seenNames.get(key);
-    if (prior) {
-      throw new Error(`Duplicate typeface names detected: "${prior}" and "${font.file}". Keep one file per typeface name.`);
+  const seenDigests = new Map();
+  for (const font of fontsWithDigests) {
+    const key = font.name.normalize('NFKC').toLowerCase();
+    const priorName = seenNames.get(key);
+    if (priorName) {
+      throw new Error(`Duplicate typeface names detected: "${priorName}" and "${font.file}". Keep one file per typeface name.`);
     }
     seenNames.set(key, font.file);
+    const priorDigest = seenDigests.get(font.digest);
+    if (priorDigest) {
+      throw new Error(`Identical font binaries detected: "${priorDigest}" and "${font.file}". Remove the duplicate file.`);
+    }
+    seenDigests.set(font.digest, font.file);
   }
 
   let rawWords = '';
@@ -119,7 +173,7 @@ async function generateContent() {
 
   for (const [index, word] of words.entries()) {
     if (word.length > 80) {
-      throw new Error(`Word library line ${index + 1} exceeds 80 characters.`);
+      throw new Error(`Word library entry ${index + 1} exceeds 80 characters.`);
     }
   }
 

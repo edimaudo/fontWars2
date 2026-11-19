@@ -2,7 +2,9 @@ import type { DailyPuzzle, DailyPuzzleRound, InitPayload, RoundResult, SessionSt
 import { getYesterdayUtc } from '../../shared/format';
 import { getFont, getRoundContent, getRoundFontOptions, getTargetSpecimen } from './dailyPuzzle';
 import { completeProfileDay, parseProfile, type PlayerProfile } from './profile';
-import { redisKeys, ROUND_COUNT, SESSION_TTL_SECONDS, DAILY_STATS_RETENTION_SECONDS } from '../config';
+import { redisKeys, ROUND_COUNT, SESSION_TTL_SECONDS, IDENTITY_TTL_SECONDS, DAILY_STATS_RETENTION_SECONDS } from '../config';
+import { acquireRedisLease } from '../redisLease';
+import { applyOnce } from '../atomicOnce';
 import { redis } from '@devvit/redis';
 import { notifications, reddit, settings, context } from '@devvit/web/server';
 import { scoreRound, percentileFromRank } from '../../shared/scoring';
@@ -45,17 +47,39 @@ export async function getServerSalt(): Promise<string> {
 
 export async function getPuzzle(date: string, generate: (date: string, salt: string) => DailyPuzzle): Promise<DailyPuzzle> {
   const key = redisKeys.puzzle(date);
-  const cached = await redis.get(key);
-  if (cached) {
+  const readCached = async (): Promise<DailyPuzzle | null> => {
+    const cached = await redis.get(key);
+    if (!cached) return null;
     try {
       return JSON.parse(cached) as DailyPuzzle;
     } catch {
-      // A corrupt cache is regenerated below.
+      return null;
     }
+  };
+
+  const cached = await readCached();
+  if (cached) return cached;
+
+  const lease = await acquireRedisLease(redisKeys.puzzleLock(date), 30);
+  if (!lease) {
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 75));
+      const concurrentPuzzle = await readCached();
+      if (concurrentPuzzle) return concurrentPuzzle;
+    }
+    throw new Error('The daily specimen set is being prepared. Retry in a moment.');
   }
-  const puzzle = generate(date, await getServerSalt());
-  await redis.set(key, JSON.stringify(puzzle));
-  return puzzle;
+
+  try {
+    const secondRead = await readCached();
+    if (secondRead) return secondRead;
+    const puzzle = generate(date, await getServerSalt());
+    await redis.set(key, JSON.stringify(puzzle));
+    await redis.expire(key, 60 * 60 * 24 * 45);
+    return puzzle;
+  } finally {
+    await lease.release();
+  }
 }
 
 export async function resolvePostDate(postId: string, today: string): Promise<{ date: string; isArchive: boolean }> {
@@ -101,7 +125,11 @@ export async function loadSession(identity: Identity, date: string, isArchive: b
   if (raw) {
     try {
       const session = JSON.parse(raw) as SessionState;
-      if (session.date === date) return session;
+      if (session.date === date) {
+        await indexSession(session);
+        await redis.expire(key, SESSION_TTL_SECONDS);
+        return session;
+      }
     } catch {
       // Replace invalid session state with a clean session.
     }
@@ -111,10 +139,70 @@ export async function loadSession(identity: Identity, date: string, isArchive: b
   return session;
 }
 
+async function indexSession(session: SessionState): Promise<void> {
+  const userIndex = redisKeys.userSessionIndex(session.userId);
+  const postIndex = redisKeys.postSessionIndex(session.postId);
+  const userEntries = (await redis.hGetAll(userIndex)) ?? {};
+  const staleUserPosts: string[] = [];
+  for (const postId of Object.keys(userEntries)) {
+    if (postId !== session.postId && !(await redis.get(redisKeys.session(postId, session.userId)))) {
+      staleUserPosts.push(postId);
+    }
+  }
+  if (staleUserPosts.length) await redis.hDel(userIndex, staleUserPosts);
+  await redis.hSet(userIndex, { [session.postId]: session.date });
+  await redis.expire(userIndex, IDENTITY_TTL_SECONDS);
+  await redis.zAdd(postIndex, { member: session.userId, score: Date.now() });
+  await redis.zRemRangeByScore(postIndex, 0, Date.now() - IDENTITY_TTL_SECONDS * 1000);
+  await redis.expire(postIndex, IDENTITY_TTL_SECONDS);
+}
+
 export async function saveSession(session: SessionState): Promise<void> {
   const key = redisKeys.session(session.postId, session.userId);
   await redis.set(key, JSON.stringify(session));
   await redis.expire(key, SESSION_TTL_SECONDS);
+  await indexSession(session);
+}
+
+async function saveSessionAndSubmission(
+  session: SessionState,
+  roundField: string,
+  reveal: RevealPayload,
+): Promise<RevealPayload> {
+  const sessionKey = redisKeys.session(session.postId, session.userId);
+  const submissionKey = redisKeys.submissions(session.postId, session.userId);
+  const userIndex = redisKeys.userSessionIndex(session.userId);
+  const postIndex = redisKeys.postSessionIndex(session.postId);
+  const serialized = JSON.stringify({ reveal, session });
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const transaction = await redis.watch(sessionKey, submissionKey);
+    const existing = await transaction.hGet(submissionKey, roundField);
+    if (existing) {
+      await transaction.unwatch();
+      try {
+        return (JSON.parse(existing) as { reveal: RevealPayload }).reveal;
+      } catch {
+        throw new Error('The saved round result is invalid. Refresh the game.');
+      }
+    }
+
+    await transaction.multi();
+    await transaction.set(sessionKey, JSON.stringify(session));
+    await transaction.expire(sessionKey, SESSION_TTL_SECONDS);
+    await transaction.hSet(submissionKey, { [roundField]: serialized });
+    await transaction.expire(submissionKey, IDENTITY_TTL_SECONDS);
+    await transaction.hSet(userIndex, { [session.postId]: session.date });
+    await transaction.expire(userIndex, IDENTITY_TTL_SECONDS);
+    await transaction.zAdd(postIndex, { member: session.userId, score: Date.now() });
+    await transaction.zRemRangeByScore(postIndex, 0, Date.now() - IDENTITY_TTL_SECONDS * 1000);
+    await transaction.expire(postIndex, IDENTITY_TTL_SECONDS);
+    if (await transaction.exec() !== null) {
+      await indexSession(session);
+      return reveal;
+    }
+  }
+  throw new Error('Your result is still being saved. Refresh to check its status.');
 }
 
 export function buildActiveRound(puzzle: DailyPuzzle, session: SessionState, now = Date.now()): ActiveRoundPayload | null {
@@ -136,7 +224,10 @@ export function buildActiveRound(puzzle: DailyPuzzle, session: SessionState, now
 }
 
 export async function getProfile(userId: string): Promise<PlayerProfile> {
-  return parseProfile(await redis.get(redisKeys.user(userId)));
+  const key = redisKeys.user(userId);
+  const raw = await redis.get(key);
+  if (raw) await redis.expire(key, IDENTITY_TTL_SECONDS);
+  return parseProfile(raw);
 }
 
 export async function getPushState(userId: string): Promise<{ available: boolean; optedIn: boolean }> {
@@ -164,7 +255,7 @@ export async function buildInitPayload(
 ): Promise<InitPayload> {
   const [playerCount, stats, push] = await Promise.all([
     redis.zCard(redisKeys.leaderboard(puzzle.date)),
-    redis.hGetAll(redisKeys.stats(puzzle.date)),
+    redis.hGetAll(redisKeys.stats(puzzle.date)).then((value) => value ?? {}),
     getPushState(identity.userId),
   ]);
   const answered = Number(stats.answered ?? 0);
@@ -206,18 +297,27 @@ export async function buildInitPayload(
   };
 }
 
+async function recordFirstPlay(session: SessionState): Promise<void> {
+  const markerKey = redisKeys.startedUsers(session.date);
+  const statsKey = redisKeys.stats(session.date);
+  await applyOnce(
+    redis,
+    markerKey,
+    session.userId,
+    '1',
+    [{ key: statsKey, field: 'playCount', amount: 1 }],
+    [
+      { key: markerKey, seconds: DAILY_STATS_RETENTION_SECONDS },
+      { key: statsKey, seconds: DAILY_STATS_RETENTION_SECONDS },
+    ],
+  );
+}
+
 export async function startRound(session: SessionState, puzzle: DailyPuzzle): Promise<{ session: SessionState; round: ActiveRoundPayload | null }> {
   if (session.status === 'COMPLETED') return { session, round: null };
   if (session.currentRound > ROUND_COUNT) return { session, round: null };
   if (session.roundStartedAt === null) {
-    if (!session.isArchive && session.status === 'UNSTARTED') {
-      const firstPlay = await redis.hSetNX(redisKeys.startedUsers(session.date), session.userId, '1');
-      if (firstPlay) {
-        await redis.hIncrBy(redisKeys.stats(session.date), 'playCount', 1);
-        await redis.expire(redisKeys.startedUsers(session.date), DAILY_STATS_RETENTION_SECONDS);
-        await redis.expire(redisKeys.stats(session.date), DAILY_STATS_RETENTION_SECONDS);
-      }
-    }
+    if (!session.isArchive && session.status === 'UNSTARTED') await recordFirstPlay(session);
     session.roundStartedAt = Date.now();
     session.startedAt ??= session.roundStartedAt;
     session.status = 'IN_PROGRESS';
@@ -227,16 +327,24 @@ export async function startRound(session: SessionState, puzzle: DailyPuzzle): Pr
 }
 
 export async function crowdDistribution(date: string, round: number): Promise<Record<string, number>> {
-  const counts = await redis.hGetAll(redisKeys.crowd(date, round));
+  const counts = (await redis.hGetAll(redisKeys.crowd(date, round))) ?? {};
   return Object.fromEntries(Object.entries(counts).map(([fontId, value]) => [fontId, Number(value) || 0]));
 }
 
 async function updateCompletionStats(session: SessionState): Promise<void> {
+  const markerKey = redisKeys.playedUsers(session.date);
   const statsKey = redisKeys.stats(session.date);
-  const firstCompletion = await redis.hSetNX(redisKeys.playedUsers(session.date), session.userId, '1');
-  if (firstCompletion) await redis.hIncrBy(statsKey, 'completedCount', 1);
-  await redis.expire(redisKeys.playedUsers(session.date), DAILY_STATS_RETENTION_SECONDS);
-  await redis.expire(statsKey, DAILY_STATS_RETENTION_SECONDS);
+  await applyOnce(
+    redis,
+    markerKey,
+    session.userId,
+    '1',
+    [{ key: statsKey, field: 'completedCount', amount: 1 }],
+    [
+      { key: markerKey, seconds: DAILY_STATS_RETENTION_SECONDS },
+      { key: statsKey, seconds: DAILY_STATS_RETENTION_SECONDS },
+    ],
+  );
 }
 
 async function updateProfileForCompletion(session: SessionState): Promise<PlayerProfile> {
@@ -245,7 +353,54 @@ async function updateProfileForCompletion(session: SessionState): Promise<Player
   const cleanTechnicalRounds = Boolean(byRound.get(3)?.isCorrect && byRound.get(4)?.isCorrect);
   const next = completeProfileDay(current, session.date, session.totalScore, cleanTechnicalRounds);
   await redis.set(redisKeys.user(session.userId), JSON.stringify(next));
+  await redis.expire(redisKeys.user(session.userId), IDENTITY_TTL_SECONDS);
   return next;
+}
+
+interface StoredRoundContribution {
+  selectedFontId: string | null;
+  elapsedMs: number;
+}
+
+async function recordRoundContribution(
+  session: SessionState,
+  round: number,
+  proposed: StoredRoundContribution,
+  puzzle: DailyPuzzle,
+): Promise<StoredRoundContribution> {
+  if (session.isArchive) return proposed;
+
+  const markerKey = redisKeys.roundContributions(session.postId, session.userId);
+  const crowdKey = redisKeys.crowd(session.date, round);
+  const statsKey = redisKeys.stats(session.date);
+  const field = `${session.date}:${round}`;
+  const content = getRoundContent(puzzle, round);
+  const increments = [
+    ...(proposed.selectedFontId !== null
+      ? [{ key: crowdKey, field: proposed.selectedFontId, amount: 1 }]
+      : []),
+    { key: statsKey, field: 'answered', amount: 1 },
+    ...(proposed.selectedFontId === content.targetFontId
+      ? [{ key: statsKey, field: 'correct', amount: 1 }]
+      : []),
+  ];
+  const result = await applyOnce(
+    redis,
+    markerKey,
+    field,
+    JSON.stringify(proposed),
+    increments,
+    [
+      { key: markerKey, seconds: IDENTITY_TTL_SECONDS },
+      { key: crowdKey, seconds: DAILY_STATS_RETENTION_SECONDS },
+      { key: statsKey, seconds: DAILY_STATS_RETENTION_SECONDS },
+    ],
+  );
+  try {
+    return JSON.parse(result.value) as StoredRoundContribution;
+  } catch {
+    throw new Error('The saved round contribution is invalid. Refresh the game.');
+  }
 }
 
 export async function submitRound(
@@ -262,13 +417,20 @@ export async function submitRound(
     throw new Error('That specimen is not one of the available choices.');
   }
 
-  const elapsedMs = Math.max(0, Date.now() - session.roundStartedAt);
-  const isCorrect = selectedFontId !== null && selectedFontId === content.targetFontId;
+  const roundNumber = session.currentRound;
+  const proposed: StoredRoundContribution = {
+    selectedFontId,
+    elapsedMs: Math.max(0, Date.now() - session.roundStartedAt),
+  };
+  const contribution = await recordRoundContribution(session, roundNumber, proposed, puzzle);
+  const recordedFontId = contribution.selectedFontId;
+  const elapsedMs = contribution.elapsedMs;
+  const isCorrect = recordedFontId !== null && recordedFontId === content.targetFontId;
   const roundScore = scoreRound(isCorrect, elapsedMs);
   const result: RoundResult = {
     round: content.round,
     targetFontId: content.targetFontId,
-    selectedFontId,
+    selectedFontId: recordedFontId,
     isCorrect,
     elapsedMs,
     roundScore,
@@ -277,15 +439,6 @@ export async function submitRound(
     triviaTitle: content.triviaTitle,
     triviaNote: content.triviaNote,
   };
-
-  if (!session.isArchive && selectedFontId !== null) {
-    await redis.hIncrBy(redisKeys.crowd(session.date, session.currentRound), selectedFontId, 1);
-  }
-  if (!session.isArchive) {
-    await redis.hIncrBy(redisKeys.stats(session.date), 'answered', 1);
-    if (isCorrect) await redis.hIncrBy(redisKeys.stats(session.date), 'correct', 1);
-    await redis.expire(redisKeys.stats(session.date), DAILY_STATS_RETENTION_SECONDS);
-  }
 
   // Archive play is read-only: use the historical crowd split without mutating it.
   const distribution = await crowdDistribution(session.date, session.currentRound);
@@ -314,14 +467,12 @@ export async function submitRound(
   }
   session.streak = visibleStreak(profile, session.date);
   session.unlockedFlairs = profile.unlockedFlairs;
-  await saveSession(session);
 
   const rank = session.isArchive ? null : await redis.zRank(redisKeys.leaderboard(session.date), session.userId);
   const playerCount = session.isArchive ? 0 : await redis.zCard(redisKeys.leaderboard(session.date));
   if (session.status === 'COMPLETED' && !session.isArchive && rank !== undefined && playerCount > 0) {
     session.percentile = percentileFromRank(rank, playerCount);
     session.playerCount = playerCount;
-    await saveSession(session);
   }
 
   const totalCount = Object.values(distribution).reduce((sum, value) => sum + value, 0);
@@ -341,7 +492,9 @@ export async function submitRound(
     streak: visibleStreak(profile, puzzle.date),
     unlockedFlairs: profile.unlockedFlairs,
   };
-  return { session, reveal };
+  const roundField = `${session.date}:${roundNumber}`;
+  const savedReveal = await saveSessionAndSubmission(session, roundField, reveal);
+  return { session, reveal: savedReveal };
 }
 
 export function buildShareComment(session: SessionState, editionNumber: number): string {

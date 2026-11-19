@@ -24,10 +24,10 @@ export async function startRound(): Promise<{ status: string; activeRound: Activ
   return request('/api/round/start', { method: 'POST', body: '{}' });
 }
 
-export function submitAnswer(selectedFontId: string | null): Promise<RevealPayload> {
+export function submitAnswer(selectedFontId: string | null, round: number): Promise<RevealPayload> {
   return request('/api/round/submit', {
     method: 'POST',
-    body: JSON.stringify({ selectedFontId }),
+    body: JSON.stringify({ selectedFontId, round }),
   });
 }
 
@@ -121,4 +121,17 @@ export async function registerFontFaces(round: ActiveRoundPayload): Promise<void
   // with a fallback face: doing so would make the typeface comparison unfair.
   await Promise.all(faces.map(loadFontFace));
   await document.fonts.ready;
+}
+
+export interface LeaderboardPayload {
+  date: string;
+  entries: Array<{ username: string; score: number }>;
+}
+
+export function loadLeaderboard(): Promise<LeaderboardPayload> {
+  return request<LeaderboardPayload>('/api/leaderboard');
+}
+
+export function deleteMyGameData(): Promise<{ deleted: boolean; note: string }> {
+  return request('/api/privacy/delete-me', { method: 'POST', body: '{}' });
 }

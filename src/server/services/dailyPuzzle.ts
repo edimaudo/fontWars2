@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import fridayThemes from '../../../assets/friday_themes.json';
 import { formatEdition } from '../../shared/format';
 import { mulberry32, pick, shuffle } from '../../shared/random';
+import { getRoundStudyGuide } from '../../shared/progression';
 import type {
   DailyPuzzle,
   DailyPuzzleRound,
@@ -22,12 +23,31 @@ const defaultLibrary: ContentLibrary = {
   words: specimenWords,
 };
 
-const themeCatalog = fridayThemes.themes as Array<{
+export interface FridayTheme {
   id: string;
   label: string;
   triviaTitle: string;
   triviaNote: string;
-}>;
+}
+
+export const themeCatalog = fridayThemes.themes as FridayTheme[];
+
+export function validateFridayThemes(themes: FridayTheme[]): void {
+  if (themes.length < 8) {
+    throw new Error(`fontWars needs at least 8 Friday themes. Found ${themes.length}.`);
+  }
+  const seen = new Set<string>();
+  for (const theme of themes) {
+    const id = theme.id.trim().toLowerCase();
+    if (!id || seen.has(id)) throw new Error(`Friday theme IDs must be present and unique: ${theme.id}`);
+    seen.add(id);
+    if (!theme.label.trim() || !theme.triviaTitle.trim() || !theme.triviaNote.trim()) {
+      throw new Error(`Friday theme ${theme.id} is missing its label or learning note.`);
+    }
+  }
+}
+
+validateFridayThemes(themeCatalog);
 
 export function getEditionNumber(date: string): number {
   const current = Date.parse(`${date}T00:00:00.000Z`);
@@ -49,15 +69,16 @@ function buildRound(
 ): DailyPuzzleRound {
   const roundFonts = shuffle(fonts, rng).slice(0, 4);
   const targetFontId = pick(roundFonts, rng).id;
+  const studyGuide = getRoundStudyGuide(roundNumber);
   return {
     round: roundNumber,
     category: 'TYPEFACE IDENTIFICATION',
-    difficulty: `ROUND ${roundNumber} OF 5`,
+    difficulty: studyGuide.stage,
     phrase,
-    instruction: 'Compare the letterforms and identify the typeface used above.',
+    instruction: studyGuide.instruction,
     targetFontId,
     optionFontIds: shuffle(roundFonts.map((font) => font.id), rng),
-    diagnosticNote: 'Compare the proportions, letter shapes, counters, terminals and spacing across the four typefaces.',
+    diagnosticNote: studyGuide.diagnosticNote,
   };
 }
 

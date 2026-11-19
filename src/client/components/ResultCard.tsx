@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { InitPayload } from '../../shared/types';
 import { formatEdition, formatScore } from '../../shared/format';
-import { equipFlair, setNotifications, shareResult } from '../api';
+import { deleteMyGameData, equipFlair, loadLeaderboard, setNotifications, shareResult } from '../api';
 
 interface Props {
   game: InitPayload;
@@ -16,10 +16,25 @@ export function ResultCard({ game, onRefresh }: Props) {
   const [notificationBusy, setNotificationBusy] = useState(false);
   const [push, setPush] = useState(game.push);
   const [message, setMessage] = useState('');
+  const [deleteArmed, setDeleteArmed] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleted, setDeleted] = useState(false);
+  const [leaders, setLeaders] = useState<Array<{ username: string; score: number }>>([]);
   const scorePercent = Math.round((game.totalScore / 5_000) * 1_000) / 10;
   const correctCount = game.results.filter((entry) => entry.result.isCorrect).length;
   const accuracyPercent = Math.round((correctCount / 5) * 100);
   const completed = game.results.length;
+
+  useEffect(() => {
+    if (game.isArchive) return;
+    let active = true;
+    loadLeaderboard().then((payload) => {
+      if (active) setLeaders(payload.entries);
+    }).catch(() => {
+      if (active) setLeaders([]);
+    });
+    return () => { active = false; };
+  }, [game.date, game.isArchive]);
 
   async function postResult() {
     setSharing(true);
@@ -61,6 +76,33 @@ export function ResultCard({ game, onRefresh }: Props) {
     }
   }
 
+  async function removeGameData() {
+    setDeleting(true);
+    setMessage('');
+    try {
+      const response = await deleteMyGameData();
+      setDeleted(true);
+      setMessage(response.note);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Could not delete your game data.');
+      setDeleteArmed(false);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  if (deleted) {
+    return (
+      <main className="result-page">
+        <header className="game-brand-row"><div className="wordmark">font<span>Wars</span></div></header>
+        <section className="privacy-confirmed" role="status" aria-live="polite">
+          <h1>Game data deleted</h1>
+          <p>Your fontWars profile and linked game records have been removed. Reddit comments you previously posted remain under Reddit’s controls.</p>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="result-page">
       <header className="game-brand-row">
@@ -87,7 +129,8 @@ export function ResultCard({ game, onRefresh }: Props) {
               className={`answer-tile ${entry.result.isCorrect ? 'tile-correct' : 'tile-missed'} ${selected === index ? 'tile-active' : ''}`}
               key={entry.result.round}
               onClick={() => setSelected(index)}
-              aria-label={`Inspect round ${index + 1}`}
+              aria-label={`Inspect round ${index + 1}: ${entry.result.isCorrect ? 'correct' : 'missed'}, ${entry.result.roundScore} points`}
+              aria-pressed={selected === index}
             >
               <span>R{index + 1}</span>
               <b>{entry.result.isCorrect ? '✓' : '×'}</b>
@@ -112,8 +155,21 @@ export function ResultCard({ game, onRefresh }: Props) {
         <button className="primary-button" onClick={postResult} disabled={posted || sharing}>
           {posted ? 'Posted ✓' : sharing ? 'Posting…' : 'Post result to comments'}<span aria-hidden="true">↗</span>
         </button>
-        <p className="action-explainer">Posts your score in this Reddit thread as u/{game.username}. Nothing is posted until you tap.</p>
+        <p className="action-explainer">Replies with your score to the pinned daily fontWars thread as u/{game.username}. Nothing is posted until you tap.</p>
       </section>
+
+      {!game.isArchive && (
+        <section className="leaderboard-section" aria-labelledby="leaderboard-heading" aria-live="polite">
+          <div className="section-heading"><span id="leaderboard-heading">TODAY'S LEADERS</span><small>TOP 10</small></div>
+          {leaders.length > 0 ? (
+            <ol className="leaderboard-list">
+              {leaders.map((entry, index) => (
+                <li key={`${entry.username}-${index}`}><span><b>{index + 1}</b>{entry.username}</span><strong>{formatScore(entry.score)}</strong></li>
+              ))}
+            </ol>
+          ) : <p className="muted-note">The daily leaderboard will appear as players complete the duel.</p>}
+        </section>
+      )}
 
       {game.unlockedFlairs.length > 0 && (
         <section className="unlock-section">
@@ -138,7 +194,21 @@ export function ResultCard({ game, onRefresh }: Props) {
         ><i /></button>
       </section>
       {!push.available && <p className="muted-note">Daily reminders are not enabled for this subreddit yet.</p>}
-      {message && <p className="inline-error">{message}</p>}
+      <section className="privacy-actions" aria-labelledby="privacy-heading">
+        <div>
+          <b id="privacy-heading">Your game data</b>
+          <p>Delete your profile, streak, leaderboard entry and saved round records from fontWars.</p>
+        </div>
+        {!deleteArmed ? (
+          <button className="text-button" onClick={() => setDeleteArmed(true)} disabled={deleting}>Delete my data</button>
+        ) : (
+          <div className="privacy-confirm-actions">
+            <button className="text-button" onClick={() => setDeleteArmed(false)} disabled={deleting}>Keep data</button>
+            <button className="danger-button" onClick={() => void removeGameData()} disabled={deleting}>{deleting ? 'Deleting…' : 'Confirm deletion'}</button>
+          </div>
+        )}
+      </section>
+      {message && <p className="inline-error" role="status">{message}</p>}
       <button className="replay-link" onClick={() => onRefresh()}>Refresh result ↻</button>
       <p className="result-footnote">fontWars / A daily typographic study</p>
     </main>

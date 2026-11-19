@@ -5,10 +5,9 @@ interface Props {
   round: ActiveRoundPayload;
   loupe: boolean;
   revealed?: boolean;
-  diagnostic?: string;
 }
 
-export function SpecimenCanvas({ round, loupe, revealed = false, diagnostic }: Props) {
+export function SpecimenCanvas({ round, loupe, revealed = false }: Props) {
   const target = round.target;
   return (
     <section className={`specimen-canvas ${loupe ? 'has-loupe' : ''}`} aria-label="Target type specimen">
@@ -26,7 +25,6 @@ export function SpecimenCanvas({ round, loupe, revealed = false, diagnostic }: P
         <span>THE LETTERFORM STUDY</span>
         <span>{revealed ? 'ANATOMY REVEALED' : 'OBSERVE · COMPARE · IDENTIFY'}</span>
       </div>
-      {diagnostic && <div className="diagnostic-note"><b>THE TELL</b>{diagnostic}</div>}
     </section>
   );
 }

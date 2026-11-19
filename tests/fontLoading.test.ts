@@ -92,6 +92,18 @@ describe('TTF and OTF font loading', () => {
     expect(fontSet.add).toHaveBeenCalledTimes(5);
   });
 
+  it('rejects a face when the browser does not confirm it is available after loading', async () => {
+    class MockFontFace {
+      status = 'unloaded';
+      constructor() {}
+      async load() { this.status = 'loaded'; return this; }
+    }
+    vi.stubGlobal('FontFace', MockFontFace);
+    vi.stubGlobal('document', { fonts: { add: vi.fn(), ready: Promise.resolve(), check: () => false } });
+
+    await expect(registerFontFaces(makeRound('unconfirmed'))).rejects.toThrow('unavailable after loading');
+  });
+
   it('rejects a required face when its TTF asset fails to load', async () => {
     class MockFontFace {
       status = 'unloaded';

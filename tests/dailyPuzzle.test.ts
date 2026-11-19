@@ -6,6 +6,8 @@ import {
   getPrimaryFontAsset,
   getRoundFontOptions,
   getTargetSpecimen,
+  themeCatalog,
+  validateFridayThemes,
   type ContentLibrary,
 } from '../src/server/services/dailyPuzzle';
 import type { FontRecord } from '../src/shared/types';
@@ -55,10 +57,39 @@ describe('daily specimen generator', () => {
     }
   });
 
-  it('applies a Friday theme to the fifth specimen without requiring font metadata', () => {
+  it('applies a validated Friday theme to the fifth specimen', () => {
     const puzzle = generateDailyPuzzle('2026-11-13', 'test-salt-1234567890', testLibrary);
     expect(puzzle.rounds[4]?.fridayTheme).toBeTruthy();
     expect(puzzle.rounds[4]?.triviaTitle).toBeTruthy();
+    expect(puzzle.rounds.slice(0, 4).every((round) => !round.fridayTheme)).toBe(true);
+  });
+
+  it('does not apply the Friday theme on other weekdays', () => {
+    const puzzle = generateDailyPuzzle('2026-11-14', 'test-salt-1234567890', testLibrary);
+    expect(puzzle.rounds.every((round) => !round.fridayTheme && !round.triviaTitle)).toBe(true);
+  });
+
+  it('requires a varied Friday theme catalogue with unique IDs and complete learning notes', () => {
+    expect(themeCatalog.length).toBeGreaterThanOrEqual(8);
+    expect(new Set(themeCatalog.map((theme) => theme.id)).size).toBe(themeCatalog.length);
+    expect(() => validateFridayThemes([...themeCatalog, themeCatalog[0]!])).toThrow('unique');
+    expect(() => validateFridayThemes(themeCatalog.slice(0, 7))).toThrow('at least 8');
+    expect(() => validateFridayThemes([{ ...themeCatalog[0]!, triviaNote: '' }, ...themeCatalog.slice(1)])).toThrow('missing');
+  });
+
+  it('rotates through more than one Friday theme across a multi-week sample', () => {
+    const fridays = ['2026-11-13', '2026-11-20', '2026-11-27', '2026-12-04', '2026-12-11', '2026-12-18'];
+    const labels = fridays.map((date) => generateDailyPuzzle(date, 'theme-rotation-salt', testLibrary).rounds[4]?.fridayTheme);
+    expect(new Set(labels).size).toBeGreaterThan(1);
+  });
+
+  it('assigns a five-stage study progression to each round', () => {
+    const puzzle = generateDailyPuzzle('2026-11-13', 'progression-test-salt', testLibrary);
+    expect(puzzle.rounds.map((round) => round.difficulty)).toEqual([
+      'FOUNDATION', 'PROPORTION', 'LETTERFORMS', 'STROKE CONTRAST', 'SPACING & RHYTHM',
+    ]);
+    expect(new Set(puzzle.rounds.map((round) => round.instruction)).size).toBe(5);
+    expect(new Set(puzzle.rounds.map((round) => round.diagnosticNote)).size).toBe(5);
   });
 
   it('matches the project edition number for November 13, 2026', () => {

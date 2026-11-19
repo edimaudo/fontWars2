@@ -11,6 +11,66 @@
       "label": "Poster culture",
       "triviaTitle": "Posters are read at a glance",
       "triviaNote": "A poster has to establish hierarchy at a distance. A strong typeface gives the title a memorable silhouette while weight and spacing help the message survive a quick look."
+    },
+    {
+      "id": "editorial-mastheads",
+      "label": "Editorial mastheads",
+      "triviaTitle": "A masthead establishes identity",
+      "triviaNote": "A publication's masthead has to remain recognizable across issues and formats. Letterform character, spacing and proportion help create a consistent editorial voice."
+    },
+    {
+      "id": "wayfinding-and-signage",
+      "label": "Wayfinding and signage",
+      "triviaTitle": "Legibility is part of navigation",
+      "triviaNote": "Wayfinding type must work at a distance and under time pressure. Open counters, clear letter differentiation and appropriate spacing can make signs easier to scan."
+    },
+    {
+      "id": "book-cover-typography",
+      "label": "Book-cover typography",
+      "triviaTitle": "A cover gives the first impression",
+      "triviaNote": "Book covers use type to signal tone and genre before a reader opens the book. Scale, contrast and the relationship between title and author name create hierarchy."
+    },
+    {
+      "id": "album-artwork",
+      "label": "Record sleeves and album artwork",
+      "triviaTitle": "Type can carry a musical identity",
+      "triviaNote": "Album artwork often uses typography as part of the artist's visual identity. Letterform shape, density and spacing can communicate energy, restraint or a particular era."
+    },
+    {
+      "id": "sports-identity",
+      "label": "Sports identity systems",
+      "triviaTitle": "Strong forms work across formats",
+      "triviaNote": "Sports identities must remain recognizable on uniforms, scoreboards and small digital surfaces. Distinctive shapes and robust spacing help type survive very different viewing conditions."
+    },
+    {
+      "id": "packaging-typography",
+      "label": "Packaging typography",
+      "triviaTitle": "Hierarchy helps people scan a pack",
+      "triviaNote": "Packaging combines brand expression with practical information. Type size, contrast and spacing help separate the product name, key claims and supporting details."
+    },
+    {
+      "id": "fashion-wordmarks",
+      "label": "Fashion wordmarks",
+      "triviaTitle": "Small changes create a distinct voice",
+      "triviaNote": "Fashion wordmarks often rely on subtle differences in proportion, spacing and stroke contrast. A restrained typographic choice can become a recognizable brand signature."
+    },
+    {
+      "id": "movement-graphics",
+      "label": "Protest and movement graphics",
+      "triviaTitle": "Typography makes messages visible",
+      "triviaNote": "Movement graphics are often designed to be read quickly in public spaces. Scale, weight and direct letterforms help a message remain clear when viewed at a distance or in motion."
+    },
+    {
+      "id": "digital-interface-type",
+      "label": "Digital interface typography",
+      "triviaTitle": "Screen text has different constraints",
+      "triviaNote": "Interface typography must remain readable across screen sizes and pixel densities. Clear forms, consistent spacing and a useful hierarchy support scanning and interaction."
+    },
+    {
+      "id": "museum-exhibition-identity",
+      "label": "Museum and exhibition identity",
+      "triviaTitle": "Typography connects a visitor journey",
+      "triviaNote": "Exhibition typography appears in titles, labels, maps and directional signs. A coherent type system connects these touchpoints while allowing each information level to remain distinct."
     }
   ]
 }

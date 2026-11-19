@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { requestExpandedMode } from '@devvit/web/client';
-import { loadGame } from './api';
+import { deleteMyGameData, loadGame } from './api';
 import { formatEdition, formatScore, formatUtcDate } from '../shared/format';
 import { appReady, journeyStart } from './telemetry';
 import './styles.css';
@@ -10,6 +10,9 @@ function SplashApp() {
   const [game, setGame] = useState<Awaited<ReturnType<typeof loadGame>> | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [deleteArmed, setDeleteArmed] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleted, setDeleted] = useState(false);
 
   useEffect(() => {
     appReady();
@@ -26,10 +29,36 @@ function SplashApp() {
       ? `Resume Round ${Math.min(game?.currentRound ?? 1, 5)} of 5`
       : `5 daily specimens · Subreddit avg ${game?.averageAccuracy ? `${game.averageAccuracy}%` : '—'}`;
 
+  async function removeGameData() {
+    setDeleting(true);
+    setError('');
+    try {
+      await deleteMyGameData();
+      setDeleted(true);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not delete your game data.');
+      setDeleteArmed(false);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   function openGame(event: React.MouseEvent<HTMLButtonElement>) {
     setBusy(true);
     void journeyStart();
     requestExpandedMode(event.nativeEvent, 'game');
+  }
+
+  if (deleted) {
+    return (
+      <main className="splash-shell">
+        <header className="splash-header"><div className="wordmark">font<span>Wars</span></div></header>
+        <section className="privacy-confirmed" role="status" aria-live="polite">
+          <h1>Game data deleted</h1>
+          <p>Your fontWars profile and linked game records have been removed. Reddit comments you previously posted remain under Reddit’s controls.</p>
+        </section>
+      </main>
+    );
   }
 
   return (
@@ -57,8 +86,19 @@ function SplashApp() {
         <button className="primary-button splash-cta" onClick={openGame} disabled={busy}>
           {busy ? 'Opening foundry…' : title}<span aria-hidden="true">↗</span>
         </button>
-        {error && <p className="inline-error">{error}</p>}
+        {error && <p className="inline-error" role="alert">{error}</p>}
         <p className="splash-footnote">A daily typographic identification game for r/{game?.subredditName ?? 'this community'}.</p>
+        {!deleteArmed ? (
+          <button className="text-button data-manage-link" onClick={() => setDeleteArmed(true)}>Manage game data</button>
+        ) : (
+          <section className="data-delete-prompt" aria-label="Delete fontWars data">
+            <p>Delete your fontWars profile, streak, leaderboard entry and saved round records? This cannot be undone. Reddit comments you posted remain.</p>
+            <div className="privacy-confirm-actions">
+              <button className="text-button" onClick={() => setDeleteArmed(false)} disabled={deleting}>Keep data</button>
+              <button className="danger-button" onClick={() => void removeGameData()} disabled={deleting}>{deleting ? 'Deleting…' : 'Confirm deletion'}</button>
+            </div>
+          </section>
+        )}
       </footer>
     </main>
   );

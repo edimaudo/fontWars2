@@ -7,6 +7,7 @@ import { loadGame, registerFontFaces, startRound, submitAnswer } from './api';
 import { SpecimenCanvas } from './components/SpecimenCanvas';
 import { RevealOverlay } from './components/RevealOverlay';
 import { ResultCard } from './components/ResultCard';
+import { hasDismissedFirstRoundHint, persistFirstRoundHintDismissal } from './onboarding';
 import './styles.css';
 
 const ROUND_MS = 12_000;
@@ -19,6 +20,13 @@ function GameApp() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [loupe, setLoupe] = useState(false);
+  const [firstRoundHintVisible, setFirstRoundHintVisible] = useState(() => {
+    try {
+      return !hasDismissedFirstRoundHint(typeof window === 'undefined' ? null : window.localStorage);
+    } catch {
+      return true;
+    }
+  });
   const [error, setError] = useState('');
   const [fontReady, setFontReady] = useState(false);
   const deadlineRef = useRef(0);
@@ -30,6 +38,15 @@ function GameApp() {
     const fresh = await loadGame();
     setGame(fresh);
     return fresh;
+  }, []);
+
+  const dismissFirstRoundHint = useCallback(() => {
+    setFirstRoundHintVisible(false);
+    try {
+      persistFirstRoundHintDismissal(typeof window === 'undefined' ? null : window.localStorage);
+    } catch {
+      // The hint is still dismissed for this in-memory session if storage is blocked.
+    }
   }, []);
 
   const activateRound = useCallback(async (source?: ActiveRoundPayload | null) => {
@@ -135,11 +152,11 @@ function GameApp() {
     try {
       let result: RevealPayload;
       try {
-        result = await submitAnswer(fontId);
+        result = await submitAnswer(fontId, round.round);
       } catch (cause) {
         const message = cause instanceof Error ? cause.message : '';
         if (fontId !== null && /expired|time/i.test(message)) {
-          result = await submitAnswer(null);
+          result = await submitAnswer(null, round.round);
         } else {
           throw cause;
         }
@@ -204,7 +221,11 @@ function GameApp() {
   const progressRound = reveal ? reveal.result.round : (round?.round ?? game?.currentRound ?? 1);
 
   return (
-    <main className="game-shell">
+    <main
+      className="game-shell"
+      onPointerDownCapture={() => { if (round?.round === 1 && firstRoundHintVisible) dismissFirstRoundHint(); }}
+      onKeyDownCapture={() => { if (round?.round === 1 && firstRoundHintVisible) dismissFirstRoundHint(); }}
+    >
       <header className="game-header">
         <div className="game-brand-row">
           <div className="wordmark">font<span>Wars</span></div>
@@ -212,12 +233,20 @@ function GameApp() {
           <span className="game-date">{game ? formatUtcDate(game.date) : 'UTC DAILY DUEL'}</span>
         </div>
         <div className="round-hud">
-          <div className="round-progress" aria-label={`Round ${progressRound} of 5`}>
+          <div
+            className="round-progress"
+            role="progressbar"
+            aria-label="Daily duel progress"
+            aria-valuemin={1}
+            aria-valuemax={5}
+            aria-valuenow={progressRound}
+            aria-valuetext={`Round ${progressRound} of 5`}
+          >
             {Array.from({ length: 5 }, (_, index) => (
-              <span key={index} className={index + 1 <= (reveal?.result.round ?? round?.round ?? 0) ? 'progress-done' : ''} />
+              <span aria-hidden="true" key={index} className={index + 1 <= (reveal?.result.round ?? round?.round ?? 0) ? 'progress-done' : ''} />
             ))}
           </div>
-          <div className={`timer ${timerState}`} aria-label={`${seconds.toFixed(1)} seconds remaining`}>
+          <div className={`timer ${timerState}`} role="timer" aria-live="off" aria-label={`${seconds.toFixed(1)} seconds remaining`}>
             <div className="timer-track"><i style={{ transform: `scaleX(${Math.max(0, remainingMs / ROUND_MS)})` }} /></div>
             <b>{seconds.toFixed(1)}s</b>
           </div>
@@ -228,18 +257,27 @@ function GameApp() {
       </header>
 
       {loading && (
-        <section className="loading-stage">
-          <div className="loading-mark">Aa</div>
+        <section className="loading-stage" role="status" aria-live="polite">
+          <div className="loading-mark" aria-hidden="true">Aa</div>
           <p>{fontReady ? 'Preparing the foundry…' : 'Loading the five typefaces…'}</p>
         </section>
       )}
       {!loading && round && (
         <>
-          <div className="play-instruction">
+          <div className="play-instruction" aria-live="polite">
             <span>IDENTIFY THE TYPEFACE</span>
             <b>{round.instruction}</b>
           </div>
-          <SpecimenCanvas round={round} loupe={loupe} revealed={Boolean(reveal)} diagnostic={reveal?.result.diagnosticNote} />
+          {round.round === 1 && firstRoundHintVisible && (
+            <aside className="first-round-hint" role="status" aria-live="polite">
+              <div>
+                <b>FIRST SPECIMEN</b>
+                <p>Compare the letterforms above with the four choices. One selection locks your answer.</p>
+              </div>
+              <button type="button" onClick={dismissFirstRoundHint} aria-label="Dismiss first-round tip">Dismiss</button>
+            </aside>
+          )}
+          <SpecimenCanvas round={round} loupe={loupe} revealed={Boolean(reveal)} />
           {!reveal ? (
             <section className="foundry-options" aria-label="Choose the matching typeface">
               <div className="options-heading"><span>THE FOUNDRY / SELECT ONE</span><small>ONE TAP LOCKS YOUR ANSWER</small></div>
@@ -261,6 +299,9 @@ function GameApp() {
           ) : (
             <RevealOverlay
               reveal={reveal}
+              targetFamily={round.target.renderFamily}
+              targetWeight={round.target.assetWeight}
+              targetStyle={round.target.assetStyle}
               onNext={() => {
                 if (transitionRef.current !== null) window.clearTimeout(transitionRef.current);
                 if (reveal.isComplete) {
@@ -280,8 +321,8 @@ function GameApp() {
       )}
 
       {!loading && !round && !reveal && game && game.status !== 'COMPLETED' && (
-        <section className="loading-stage">
-          <div className="loading-mark">Aa</div>
+        <section className="loading-stage" role="status" aria-live="polite">
+          <div className="loading-mark" aria-hidden="true">Aa</div>
           <p>All specimens are accounted for.</p>
           <button className="primary-button" onClick={() => void syncGame()}>Refresh game ↻</button>
         </section>

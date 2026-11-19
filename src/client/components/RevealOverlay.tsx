@@ -1,13 +1,17 @@
 import React from 'react';
 import type { RevealPayload } from '../../shared/types';
+import { AnatomyCallouts } from './AnatomyCallouts';
 
 interface Props {
   reveal: RevealPayload;
   onNext: () => void;
   lastRound: boolean;
+  targetFamily: string;
+  targetWeight: string;
+  targetStyle: 'normal' | 'italic' | 'oblique';
 }
 
-export function RevealOverlay({ reveal, onNext, lastRound }: Props) {
+export function RevealOverlay({ reveal, onNext, lastRound, targetFamily, targetWeight, targetStyle }: Props) {
   const { result, correctFont, options, crowdPercentages } = reveal;
   return (
     <section className="reveal-panel" aria-live="polite">
@@ -35,6 +39,7 @@ export function RevealOverlay({ reveal, onNext, lastRound }: Props) {
           );
         })}
       </div>
+      <AnatomyCallouts family={targetFamily} weight={targetWeight} style={targetStyle} />
       <p className="reveal-diagnostic">{result.diagnosticNote}</p>
       {result.triviaTitle && <div className="trivia-note"><b>{result.triviaTitle}</b><p>{result.triviaNote}</p></div>}
       <button className="primary-button next-button" onClick={onNext}>

@@ -53,6 +53,10 @@
       }
     }
   },
+  "triggers": {
+    "onPostDelete": "/internal/triggers/post-delete",
+    "onCommentDelete": "/internal/triggers/comment-delete"
+  },
   "scheduler": {
     "tasks": {
       "daily-specimen-drop": {

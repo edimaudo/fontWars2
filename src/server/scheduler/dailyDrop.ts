@@ -3,8 +3,68 @@ import { redis } from '@devvit/redis';
 import { context, notifications, reddit, scheduler, settings } from '@devvit/web/server';
 import { formatUtcDate } from '../../shared/format';
 import { generateDailyPuzzle } from '../services/dailyPuzzle';
-import { getServerSalt } from '../services/session';
+import { getPuzzle } from '../services/session';
+import { acquireRedisLease } from '../redisLease';
 import { redisKeys } from '../config';
+
+const SHARE_THREAD_COPY = [
+  'fontWars daily score thread',
+  '',
+  'Post your completed five-specimen result as a reply to this comment. Sharing is optional and happens only when you choose to post your score.',
+].join('\n');
+
+export async function ensureDailyShareThread(postId: string): Promise<string> {
+  const threadKey = redisKeys.shareThread(postId);
+  const cachedId = await redis.get(threadKey);
+  if (cachedId) {
+    try {
+      const comment = await reddit.getCommentById(cachedId);
+      await comment.distinguish(true);
+      await redis.set(redisKeys.shareAnchorIndex(cachedId), postId);
+      await redis.expire(redisKeys.shareAnchorIndex(cachedId), 60 * 60 * 24 * 45);
+      return cachedId;
+    } catch (error) {
+      // Do not create another anchor on an ambiguous fetch/permission error.
+      // A real Reddit comment-delete trigger clears this mapping when deleted.
+      console.warn('fontWars cached score thread could not be verified.', error);
+      throw new Error('The pinned score thread could not be verified.');
+    }
+  }
+
+  const lease = await acquireRedisLease(redisKeys.shareThreadLock(postId), 30);
+  if (!lease) {
+    const concurrentId = await redis.get(threadKey);
+    if (concurrentId) return concurrentId;
+    throw new Error('The daily score thread is being prepared. Try again shortly.');
+  }
+
+  try {
+    const currentId = await redis.get(threadKey);
+    if (currentId) {
+      try {
+        const existing = await reddit.getCommentById(currentId);
+        await existing.distinguish(true);
+        await redis.set(redisKeys.shareAnchorIndex(currentId), postId);
+        await redis.expire(redisKeys.shareAnchorIndex(currentId), 60 * 60 * 24 * 45);
+        return currentId;
+      } catch {
+        throw new Error('The existing score thread could not be verified.');
+      }
+    }
+
+    await redis.set(threadKey, 'pending');
+    await redis.expire(threadKey, 60 * 60 * 24 * 45);
+    const comment = await reddit.submitComment({ id: postId, text: SHARE_THREAD_COPY, runAs: 'APP' });
+    await redis.set(threadKey, comment.id);
+    await redis.expire(threadKey, 60 * 60 * 24 * 45);
+    await comment.distinguish(true);
+    await redis.set(redisKeys.shareAnchorIndex(comment.id), postId);
+    await redis.expire(redisKeys.shareAnchorIndex(comment.id), 60 * 60 * 24 * 45);
+    return comment.id;
+  } finally {
+    await lease.release();
+  }
+}
 
 export async function createDailyPost(force = false): Promise<{ date: string; postId: string; created: boolean }> {
   const date = new Date().toISOString().slice(0, 10);
@@ -13,24 +73,27 @@ export async function createDailyPost(force = false): Promise<{ date: string; po
 
   const postKey = redisKeys.dailyPost(date);
   const existing = await redis.get(postKey);
-  if (existing) return { date, postId: existing, created: false };
+  if (existing) {
+    try {
+      await ensureDailyShareThread(existing);
+    } catch (error) {
+      console.warn('fontWars could not verify the pinned score thread.', error);
+    }
+    return { date, postId: existing, created: false };
+  }
 
-  // A short Redis lock prevents a cron/manual invocation race from creating two posts.
-  const lockKey = redisKeys.dailyPostLock(date);
-  const lockAcquired = await redis.hSetNX(lockKey, 'creator', String(Date.now()));
-  if (!lockAcquired) {
+  // A token-owned lease prevents cron/manual creation races and expires after crashes.
+  const lease = await acquireRedisLease(redisKeys.dailyPostLock(date), 60);
+  if (!lease) {
     const concurrentPost = await redis.get(postKey);
     return { date, postId: concurrentPost ?? '', created: false };
   }
-  await redis.expire(lockKey, 60);
 
   try {
     const createdPost = await redis.get(postKey);
     if (createdPost) return { date, postId: createdPost, created: false };
 
-    const salt = await getServerSalt();
-    const puzzle = generateDailyPuzzle(date, salt);
-    await redis.set(redisKeys.puzzle(date), JSON.stringify(puzzle));
+    const puzzle = await getPuzzle(date, generateDailyPuzzle);
 
     const autoCreate = await settings.get('autoCreateDailyPost');
     if (autoCreate === false && !force) return { date, postId: '', created: false };
@@ -42,7 +105,16 @@ export async function createDailyPost(force = false): Promise<{ date: string; po
     });
     const postId = post.id;
     await redis.set(postKey, postId);
+    await redis.expire(postKey, 60 * 60 * 24 * 45);
     await redis.set(redisKeys.postDate(postId), date);
+    await redis.expire(redisKeys.postDate(postId), 60 * 60 * 24 * 45);
+    try {
+      await ensureDailyShareThread(postId);
+    } catch (error) {
+      // Post creation should not fail because pinning permissions need moderator setup.
+      // The result-sharing route retries this operation when a player explicitly shares.
+      console.warn('fontWars daily post was created, but its score thread could not be pinned.', error);
+    }
 
     const pushEnabled = await settings.get('pushNotificationsEnabled');
     if (pushEnabled === true) {
@@ -60,7 +132,7 @@ export async function createDailyPost(force = false): Promise<{ date: string; po
 
     return { date, postId, created: true };
   } finally {
-    await redis.hDel(lockKey, ['creator']);
+    await lease.release();
   }
 }
 
