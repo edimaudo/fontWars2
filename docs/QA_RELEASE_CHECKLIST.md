@@ -12,6 +12,7 @@ This checklist separates automated source checks from tests that require real as
 - [ ] Run `npm test`; confirm scoring, puzzle determinism, content manifest, real font validation, Redis lease, atomic marker, onboarding, anatomy and accessibility contract tests pass.
 - [ ] Run `npm run build`; confirm client and server bundles are produced.
 - [ ] Inspect `dist/server/index.js` and `dist/client` for the expected bundle and static font files.
+- [ ] Confirm `dist/client/splash.html` and `dist/client/game.html` exist at the client output root (not nested under `src/client/`).
 
 ## Real font and word-library QA
 

@@ -2,16 +2,24 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'node:path';
 
+const projectRoot = __dirname;
+const clientRoot = resolve(projectRoot, 'src/client');
+
 export default defineConfig({
+  // Treat src/client as the Vite root so splash.html and game.html are
+  // emitted at the top level of dist/client, matching both Vercel and Devvit.
+  root: clientRoot,
   plugins: [react()],
-  publicDir: 'public',
+  // User-supplied font files and the generated browser content manifest live
+  // outside the client source directory but must be copied to the web root.
+  publicDir: resolve(projectRoot, 'public'),
   build: {
-    outDir: 'dist/client',
+    outDir: resolve(projectRoot, 'dist/client'),
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        splash: resolve(__dirname, 'src/client/splash.html'),
-        game: resolve(__dirname, 'src/client/game.html'),
+        splash: resolve(clientRoot, 'splash.html'),
+        game: resolve(clientRoot, 'game.html'),
       },
     },
   },

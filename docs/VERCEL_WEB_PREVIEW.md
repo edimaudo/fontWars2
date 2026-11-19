@@ -36,16 +36,17 @@ Open the local URL printed by Vite (normally `http://localhost:5173`). The previ
 1. Push this project to a Git repository.
 2. In Vercel, select **Add New → Project** and import the repository.
 3. Set the **Root Directory** to `fontwars` if the project is inside a larger repository folder. Leave it at `.` if the repository root is already this project.
-4. Keep the Vite framework detection. The included `vercel.json` sets the build command to `npm run build:web-preview` and the output directory to `dist/client`.
+4. Keep the Vite framework detection. The included `vite.config.ts` sets the Vite root to `src/client`, so the two HTML entrypoints are emitted directly as `dist/client/splash.html` and `dist/client/game.html`. The included `vercel.json` sets the build command to `npm run build:web-preview` and the output directory to `dist/client`.
 5. In **Project Settings → Build and Deployment → Node.js Version**, select **24.x**. Vercel currently supports Node 24.x and automatically applies the latest patch release; the project requires Node 24.18.0 or later.
 6. Deploy the project.
 
 The build is strict. It stops if it cannot find at least four valid font files or five valid word entries. The supplied Python example is not copied literally: fontWars is a Vite/React TypeScript application, not a FastAPI application, so there is no `main.py`, `@vercel/python` function, function memory setting, or Python rewrite destination. Vercel serves the built multi-page frontend as static files. The two explicit rewrites provide clean `/` and `/game` routes; a duplicate catch-all rewrite is unnecessary. No database or Vercel environment variables are required for this static preview.
 
-The routes are:
+The generated files and routes are:
 
-- `/` — the fontWars start screen
-- `/game` — the game screen
+- `dist/client/splash.html` — the fontWars start screen (also served at `/` by the rewrite)
+- `dist/client/game.html` — the game screen (also served at `/game` by the rewrite)
+- `/splash.html` and `/game.html` — direct static-file URLs for the two pages
 
 ## 4. Preview behavior and limitations
 
@@ -66,7 +67,7 @@ Vercel runs:
 npm run build:web-preview
 ```
 
-That command validates the user-provided content, generates the server and browser content manifests, and creates the static Vite build in `dist/client`. The Devvit production build remains separate and is documented in [DEVVIT_DEPLOYMENT.md](./DEVVIT_DEPLOYMENT.md).
+That command validates the user-provided content, generates the server and browser content manifests, and creates the static Vite build in `dist/client`. The Vite root is `src/client`; without that setting Vite would preserve the `src/client/` subdirectory in the emitted HTML paths, so Vercel and Devvit would not find their configured `splash.html` and `game.html` entrypoints. The Devvit production build remains separate and is documented in [DEVVIT_DEPLOYMENT.md](./DEVVIT_DEPLOYMENT.md).
 
 ## Official Vercel documentation
 
