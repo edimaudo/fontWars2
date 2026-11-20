@@ -4,6 +4,7 @@ import { isWebPreview } from './platform';
 import { deleteMyGameData, loadGame } from './api';
 import { formatScore } from '../shared/format';
 import { appReady, journeyStart } from './telemetry';
+import { ThemeToggle } from './components/ThemeToggle';
 import './styles.css';
 
 function SplashApp() {
@@ -60,7 +61,7 @@ function SplashApp() {
   if (deleted) {
     return (
       <main className="splash-shell">
-        <header className="splash-header"><div className="wordmark">font<span>Wars</span></div></header>
+        <header className="splash-header"><div className="wordmark">font<span>Wars</span></div><ThemeToggle /></header>
         <section className="privacy-confirmed" role="status" aria-live="polite">
           <h1>Game data deleted</h1>
           <p>Your fontWars profile and saved game records have been removed.</p>
@@ -71,7 +72,7 @@ function SplashApp() {
 
   return (
     <main className="splash-shell">
-      <header className="splash-header"><div className="wordmark">font<span>Wars</span></div></header>
+      <header className="splash-header"><div className="wordmark">font<span>Wars</span></div><ThemeToggle /></header>
       <section className="splash-intro" aria-labelledby="splash-title">
         <h1 id="splash-title">A typographical skill game.</h1>
         <p className="splash-lead">Flaunt your keen sense of design.</p>
@@ -90,17 +91,20 @@ function SplashApp() {
           </div>
         )}
         {error && <p className="inline-error" role="alert">{error}</p>}
-        {!deleteArmed ? (
-          <button className="text-button data-manage-link" onClick={() => setDeleteArmed(true)}>Manage game data</button>
-        ) : (
-          <section className="data-delete-prompt" aria-label="Delete fontWars data">
-            <p>Delete your fontWars profile, streak, leaderboard entry and saved round records? This cannot be undone.</p>
-            <div className="privacy-confirm-actions">
-              <button className="text-button" onClick={() => setDeleteArmed(false)} disabled={deleting}>Keep data</button>
-              <button className="danger-button" onClick={() => void removeGameData()} disabled={deleting}>{deleting ? 'Deleting…' : 'Confirm deletion'}</button>
-            </div>
-          </section>
-        )}
+        <details className="privacy-details">
+          <summary>Manage game data</summary>
+          <div className="privacy-details-content">
+            <p>Delete your fontWars profile, streak, leaderboard entry and saved round records. This cannot be undone.</p>
+            {!deleteArmed ? (
+              <button className="text-button" onClick={() => setDeleteArmed(true)}>Delete my data</button>
+            ) : (
+              <div className="privacy-confirm-actions">
+                <button className="text-button" onClick={() => setDeleteArmed(false)} disabled={deleting}>Cancel</button>
+                <button className="danger-button" onClick={() => void removeGameData()} disabled={deleting}>{deleting ? 'Deleting…' : 'Confirm deletion'}</button>
+              </div>
+            )}
+          </div>
+        </details>
       </footer>
     </main>
   );

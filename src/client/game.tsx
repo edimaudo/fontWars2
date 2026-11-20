@@ -8,6 +8,7 @@ import { SpecimenCanvas } from './components/SpecimenCanvas';
 import { RevealOverlay } from './components/RevealOverlay';
 import { ResultCard } from './components/ResultCard';
 import { isWebPreview } from './platform';
+import { ThemeToggle } from './components/ThemeToggle';
 import './styles.css';
 
 const ROUND_MS = 12_000;
@@ -261,11 +262,14 @@ function GameApp() {
       <header className="game-header">
         <div className="game-brand-row">
           <div className="wordmark">font<span>Wars</span></div>
-          {!loading && round && (
-            <button type="button" className="end-game-button" onClick={() => setShowEndConfirm(true)} disabled={submitting}>
-              End game
-            </button>
-          )}
+          <div className="game-header-actions">
+            <ThemeToggle />
+            {!loading && round && (
+              <button type="button" className="end-game-button" onClick={() => setShowEndConfirm(true)} disabled={submitting}>
+                End game
+              </button>
+            )}
+          </div>
         </div>
         <div className="round-hud">
           <div

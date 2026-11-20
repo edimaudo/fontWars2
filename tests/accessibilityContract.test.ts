@@ -84,10 +84,29 @@ describe('fontWars interface and accessibility contracts', () => {
       return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
     };
 
-    expect(contrast('#a94f40', '#faf9f6')).toBeGreaterThanOrEqual(4.5);
-    expect(contrast('#68655e', '#faf9f6')).toBeGreaterThanOrEqual(4.5);
-    expect(contrast('#a6a3aa', '#1b1b1e')).toBeGreaterThanOrEqual(4.5);
-    expect(contrast('#f0b85d', '#121214')).toBeGreaterThanOrEqual(3);
+    expect(contrast('#20252d', '#f3f1eb')).toBeGreaterThanOrEqual(4.5);
+    expect(contrast('#555e69', '#f3f1eb')).toBeGreaterThanOrEqual(4.5);
+    expect(contrast('#f5f3ed', '#15191f')).toBeGreaterThanOrEqual(4.5);
+    expect(contrast('#c0c6ce', '#15191f')).toBeGreaterThanOrEqual(4.5);
+    expect(contrast('#ffffff', '#294965')).toBeGreaterThanOrEqual(4.5);
+    expect(contrast('#221d14', '#e2b65f')).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('provides the light/dark theme toggle across the app and keeps game-data controls secondary', () => {
+    const theme = read('../src/client/components/ThemeToggle.tsx');
+    const splash = read('../src/client/splash.tsx');
+    const game = read('../src/client/game.tsx');
+    const result = read('../src/client/components/ResultCard.tsx');
+    const css = read('../src/client/styles.css');
+    expect(theme).toContain("aria-pressed={theme === 'dark'}");
+    expect(theme).toContain('localStorage.setItem');
+    expect(splash).toContain('<ThemeToggle />');
+    expect(game).toContain('<ThemeToggle />');
+    expect(result).toContain('<ThemeToggle />');
+    expect(css).toContain(':root[data-theme="dark"]');
+    expect(splash).toContain('<details className="privacy-details">');
+    expect(result).toContain('<details className="privacy-details">');
+    expect(result).not.toContain('<section className="privacy-actions"');
   });
 
   it('keeps self-service data deletion available on the landing page and results', () => {

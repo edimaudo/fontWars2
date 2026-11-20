@@ -55,22 +55,22 @@ export function AnatomyCallouts({ family, weight, style }: Props) {
   }, [family, style, weight]);
 
   return (
-    <section className="anatomy-block" aria-label="Font details">
+    <section className="anatomy-block" aria-label="Letter shape details">
       <div className="anatomy-heading">
-        <b>FONT DETAILS</b>
-        <span>MEASURED FROM THIS FONT</span>
+        <b>LETTER SHAPES</b>
+        <span>QUICK COMPARISON</span>
       </div>
       {data ? (
-        <svg className="anatomy-diagram" viewBox={`0 0 ${SVG_WIDTH} 124`} role="img" aria-label="Cap height, x-height, baseline and descender measured using the target font">
+        <svg className="anatomy-diagram" viewBox={`0 0 ${SVG_WIDTH} 124`} role="img" aria-label="Capital height, lowercase height, baseline and descender">
           <g className="anatomy-guide anatomy-guide--cap">
             <line x1="88" x2="408" y1={data.guides.capHeight} y2={data.guides.capHeight} />
             <circle cx={data.capX} cy={data.guides.capHeight} r="4" />
-            <text x="10" y={data.guides.capHeight + 3}>CAP HEIGHT</text>
+            <text x="10" y={data.guides.capHeight + 3}>CAPITAL</text>
           </g>
           <g className="anatomy-guide anatomy-guide--xheight">
             <line x1="88" x2="408" y1={data.guides.xHeight} y2={data.guides.xHeight} />
             <circle cx={data.xX} cy={data.guides.xHeight} r="4" />
-            <text x="10" y={data.guides.xHeight + 3}>X-HEIGHT</text>
+            <text x="10" y={data.guides.xHeight + 3}>LOWERCASE</text>
           </g>
           <g className="anatomy-guide anatomy-guide--baseline">
             <line x1="88" x2="408" y1={data.guides.baseline} y2={data.guides.baseline} />
@@ -87,7 +87,7 @@ export function AnatomyCallouts({ family, weight, style }: Props) {
       ) : (
         <p className="anatomy-unavailable">Font measurements are unavailable in this browser.</p>
       )}
-      <p className="anatomy-caption">H marks cap height · x marks lowercase height · p marks the descender</p>
+      <p className="anatomy-caption">H shows capital height · x shows lowercase height · p drops below the line</p>
     </section>
   );
 }

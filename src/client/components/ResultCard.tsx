@@ -3,6 +3,7 @@ import type { InitPayload } from '../../shared/types';
 import { formatScore } from '../../shared/format';
 import { deleteMyGameData, equipFlair, loadLeaderboard, setNotifications, shareResult } from '../api';
 import { isWebPreview } from '../platform';
+import { ThemeToggle } from './ThemeToggle';
 
 interface Props {
   game: InitPayload;
@@ -94,7 +95,7 @@ export function ResultCard({ game }: Props) {
   if (deleted) {
     return (
       <main className="result-page">
-        <header className="game-brand-row"><div className="wordmark">font<span>Wars</span></div></header>
+        <header className="game-brand-row"><div className="wordmark">font<span>Wars</span></div><ThemeToggle /></header>
         <section className="privacy-confirmed" role="status" aria-live="polite">
           <h1>Game data deleted</h1>
           <p>Your fontWars profile and saved game records have been removed.</p>
@@ -107,6 +108,7 @@ export function ResultCard({ game }: Props) {
     <main className="result-page">
       <header className="game-brand-row">
         <div className="wordmark">font<span>Wars</span></div>
+        <ThemeToggle />
       </header>
       <section className="score-hero" aria-labelledby="score-heading">
         <h1 id="score-heading" className="result-heading">Your score</h1>
@@ -200,20 +202,20 @@ export function ResultCard({ game }: Props) {
         </section>
       )}
 
-      <section className="privacy-actions" aria-labelledby="privacy-heading">
-        <div>
-          <b id="privacy-heading">Your game data</b>
-          <p>Delete your profile, streak, leaderboard entry and saved round records.</p>
+      <details className="privacy-details">
+        <summary>Manage game data</summary>
+        <div className="privacy-details-content">
+          <p>Delete your profile, streak, leaderboard entry and saved round records. This cannot be undone.</p>
+          {!deleteArmed ? (
+            <button className="text-button" onClick={() => setDeleteArmed(true)} disabled={deleting}>Delete my data</button>
+          ) : (
+            <div className="privacy-confirm-actions">
+              <button className="text-button" onClick={() => setDeleteArmed(false)} disabled={deleting}>Cancel</button>
+              <button className="danger-button" onClick={() => void removeGameData()} disabled={deleting}>{deleting ? 'Deleting…' : 'Confirm deletion'}</button>
+            </div>
+          )}
         </div>
-        {!deleteArmed ? (
-          <button className="text-button" onClick={() => setDeleteArmed(true)} disabled={deleting}>Delete my data</button>
-        ) : (
-          <div className="privacy-confirm-actions">
-            <button className="text-button" onClick={() => setDeleteArmed(false)} disabled={deleting}>Keep data</button>
-            <button className="danger-button" onClick={() => void removeGameData()} disabled={deleting}>{deleting ? 'Deleting…' : 'Confirm deletion'}</button>
-          </div>
-        )}
-      </section>
+      </details>
       {message && <p className="inline-error" role="status">{message}</p>}
     </main>
   );
