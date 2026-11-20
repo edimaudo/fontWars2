@@ -4,6 +4,7 @@ import { formatScore } from '../../shared/format';
 import { deleteMyGameData, equipFlair, loadLeaderboard, setNotifications, shareResult } from '../api';
 import { isWebPreview } from '../platform';
 import { ThemeToggle } from './ThemeToggle';
+import { getRoundStudyGuide } from '../../shared/progression';
 
 interface Props {
   game: InitPayload;
@@ -95,7 +96,7 @@ export function ResultCard({ game }: Props) {
   if (deleted) {
     return (
       <main className="result-page">
-        <header className="game-brand-row"><div className="wordmark">font<span>Wars</span></div><ThemeToggle /></header>
+        <header className="game-brand-row"><div className="wordmark"><span className="wordmark-regular">font</span><span className="wordmark-bold">Wars</span></div><ThemeToggle /></header>
         <section className="privacy-confirmed" role="status" aria-live="polite">
           <h1>Game data deleted</h1>
           <p>Your fontWars profile and saved game records have been removed.</p>
@@ -107,7 +108,7 @@ export function ResultCard({ game }: Props) {
   return (
     <main className="result-page">
       <header className="game-brand-row">
-        <div className="wordmark">font<span>Wars</span></div>
+        <div className="wordmark"><span className="wordmark-regular">font</span><span className="wordmark-bold">Wars</span></div>
         <ThemeToggle />
       </header>
       <section className="score-hero" aria-labelledby="score-heading">
@@ -146,7 +147,7 @@ export function ResultCard({ game }: Props) {
           return (
             <div className="specimen-drawer">
               <div className="drawer-head"><b>{entry.font.name}</b></div>
-              <p>{entry.result.diagnosticNote}</p>
+              <p>{getRoundStudyGuide(entry.result.round).feedback}</p>
               {!isWebPreview() && (
                 <div className="drawer-foot"><span>Community accuracy</span><b>{entry.crowdAccuracy}%</b></div>
               )}

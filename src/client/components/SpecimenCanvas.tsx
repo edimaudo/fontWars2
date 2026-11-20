@@ -8,7 +8,7 @@ interface Props {
 export function SpecimenCanvas({ round }: Props) {
   const target = round.target;
   return (
-    <section className="specimen-canvas" aria-label="Word to identify">
+    <section className="specimen-canvas" aria-label="Sample text to match">
       <div
         className="specimen-phrase"
         style={{

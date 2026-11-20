@@ -24,7 +24,10 @@ describe('fontWars visual system', () => {
       expect(css).toContain(selector);
     }
     expect(css).toContain('@media (max-width: 600px)');
+    expect(css).toContain('@media (max-width: 370px)');
+    expect(css).toContain('@media (forced-colors: active)');
     expect(css).toContain('button:focus-visible');
+    expect(css).toContain('input:focus-visible');
     expect(css).toContain('prefers-reduced-motion: reduce');
     expect(css).toContain('.toggle { display: flex; width: 52px; height: 44px;');
   });

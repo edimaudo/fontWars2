@@ -9,6 +9,8 @@ describe('fontWars interface and accessibility contracts', () => {
     expect(splash).toContain('A typographical skill game.');
     expect(splash).toContain('Flaunt your keen sense of design.');
     expect(splash).toContain('Playing fontWars is insanely addictive. Use responsibly.');
+    expect(splash).not.toContain('splash-mark');
+    expect(splash).not.toContain('>Aa</div>');
     expect(splash).not.toContain('WEB PREVIEW');
     expect(splash).not.toContain('Type Foundry');
     expect(splash).not.toContain('A browser-only preview');
@@ -21,7 +23,8 @@ describe('fontWars interface and accessibility contracts', () => {
     expect(game).toContain('role="dialog"');
     expect(game).toContain('aria-modal="true"');
     expect(game).toContain('exitExpandedMode');
-    expect(game).toContain("'Compare the overall shape of the word.'");
+    expect(game).toContain('getRoundStudyGuide(round.round).instruction');
+    expect(game).not.toContain('loading-mark');
     expect(game).not.toContain('WEB PREVIEW');
     expect(game).not.toContain('FIRST SPECIMEN');
     expect(game).not.toContain('TYPE FOUNDRY');
@@ -53,6 +56,9 @@ describe('fontWars interface and accessibility contracts', () => {
     expect(css).toContain('@media (max-width: 420px)');
     expect(css).toContain('.end-game-backdrop');
     expect(css).toContain('min-height: 44px');
+    expect(css).toContain('@media (forced-colors: active)');
+    expect(css).toContain('color: var(--text); font-size: clamp(34px, 8vw, 76px)');
+    expect(css).toContain('overflow-wrap: anywhere');
   });
 
   it('exposes game progress, timer and loading state to assistive technology', () => {
@@ -69,7 +75,10 @@ describe('fontWars interface and accessibility contracts', () => {
     expect(result).toContain('aria-pressed={selected === index}');
     expect(result).toContain("aria-label={`Round ${index + 1}: ${entry.result.isCorrect ? 'correct' : 'missed'}, ${entry.result.roundScore} points`}");
     expect(reveal).toContain('aria-live="polite"');
-    expect(reveal).toContain('<AnatomyCallouts');
+    expect(reveal).toContain('getRoundStudyGuide(result.round).feedback');
+    expect(reveal).not.toContain('diagnosticNote');
+    expect(reveal).not.toContain('AnatomyCallouts');
+    expect(result).not.toContain('entry.result.diagnosticNote');
   });
 
   it('keeps key UI text and focus indicators above the tested WCAG AA contrast thresholds', () => {
@@ -107,6 +116,24 @@ describe('fontWars interface and accessibility contracts', () => {
     expect(splash).toContain('<details className="privacy-details">');
     expect(result).toContain('<details className="privacy-details">');
     expect(result).not.toContain('<section className="privacy-actions"');
+  });
+
+  it('centres the landing page and uses a single-colour Inter wordmark with two weights', () => {
+    const splash = read('../src/client/splash.tsx');
+    const game = read('../src/client/game.tsx');
+    const result = read('../src/client/components/ResultCard.tsx');
+    const css = read('../src/client/styles.css');
+    expect(splash).toContain('className="wordmark-regular"');
+    expect(splash).toContain('className="wordmark-bold"');
+    expect(css).toContain('font-family: Inter, ui-sans-serif, system-ui, sans-serif');
+    expect(css).toContain('font-weight: 400');
+    expect(css).toContain('font-weight: 700');
+    expect(css).toContain('align-items: center; justify-content: center');
+    expect(css).toContain('.wordmark .wordmark-bold { color: inherit;');
+    expect(game).toContain('className="wordmark-regular"');
+    expect(result).toContain('className="wordmark-regular"');
+    expect(game).not.toContain('Start broad.');
+    expect(read('../src/shared/progression.ts')).not.toContain('visual density');
   });
 
   it('keeps self-service data deletion available on the landing page and results', () => {

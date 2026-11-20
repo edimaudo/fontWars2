@@ -1,35 +1,41 @@
 export interface RoundStudyGuide {
   stage: string;
   instruction: string;
+  feedback: string;
   diagnosticNote: string;
 }
 
-/** Short prompts for the five font-identification rounds. */
+/** Plain-language cues used during each round and in the answer explanation. */
 export const ROUND_STUDY_PLAN: readonly RoundStudyGuide[] = [
   {
-    stage: 'SHAPE',
-    instruction: 'Compare the overall shape of the word.',
-    diagnosticNote: 'Look at the word as a whole: its width, proportions and overall shape.',
+    stage: 'OVERALL LOOK',
+    instruction: 'Match the sample text to the font that looks most like it.',
+    feedback: 'Compare the width and overall shape of the sample. Do not focus on just one letter.',
+    diagnosticNote: 'Compare the width and overall shape of the sample. Do not focus on just one letter.',
   },
   {
-    stage: 'PROPORTION',
+    stage: 'LETTER SIZE',
     instruction: 'Compare the height and width of the letters.',
-    diagnosticNote: 'Compare tall and rounded letters, including their relative height and width.',
+    feedback: 'Notice whether the letters are tall or short, and wide or narrow.',
+    diagnosticNote: 'Notice whether the letters are tall or short, and wide or narrow.',
   },
   {
-    stage: 'DETAIL',
-    instruction: 'Look closely at distinctive letter shapes.',
-    diagnosticNote: 'Notice the details that distinguish letters such as a, g, e and R.',
+    stage: 'LETTER SHAPES',
+    instruction: 'Compare individual letters. Look at their shapes.',
+    feedback: 'Look at curves, straight lines and the open spaces inside letters.',
+    diagnosticNote: 'Look at curves, straight lines and the open spaces inside letters.',
   },
   {
-    stage: 'STROKE',
-    instruction: 'Compare thick and thin strokes.',
-    diagnosticNote: 'Look for differences between thick and thin strokes and how curves meet stems.',
+    stage: 'LINE THICKNESS',
+    instruction: 'Compare the thickness of the lines that form each letter.',
+    feedback: 'Some fonts use strokes that are mostly even; others have clearly thicker and thinner parts.',
+    diagnosticNote: 'Some fonts use strokes that are mostly even; others have clearly thicker and thinner parts.',
   },
   {
-    stage: 'SPACING',
-    instruction: 'Look at the spacing between letters.',
-    diagnosticNote: 'Read the word as a whole and compare its spacing and rhythm.',
+    stage: 'LETTER SPACING',
+    instruction: 'Compare the gaps between letters. Which option has similar spacing?',
+    feedback: 'Look for letters that sit close together or have more space between them.',
+    diagnosticNote: 'Look for letters that sit close together or have more space between them.',
   },
 ] as const;
 

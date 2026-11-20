@@ -9,17 +9,10 @@ import { RevealOverlay } from './components/RevealOverlay';
 import { ResultCard } from './components/ResultCard';
 import { isWebPreview } from './platform';
 import { ThemeToggle } from './components/ThemeToggle';
+import { getRoundStudyGuide } from '../shared/progression';
 import './styles.css';
 
 const ROUND_MS = 12_000;
-const ROUND_PROMPTS = [
-  'Compare the overall shape of the word.',
-  'Compare the height and width of the letters.',
-  'Look closely at distinctive letter shapes.',
-  'Compare thick and thin strokes.',
-  'Look at the spacing between letters.',
-] as const;
-
 function GameApp() {
   const [game, setGame] = useState<InitPayload | null>(null);
   const [round, setRound] = useState<ActiveRoundPayload | null>(null);
@@ -261,7 +254,7 @@ function GameApp() {
     <main className="game-shell">
       <header className="game-header">
         <div className="game-brand-row">
-          <div className="wordmark">font<span>Wars</span></div>
+          <div className="wordmark"><span className="wordmark-regular">font</span><span className="wordmark-bold">Wars</span></div>
           <div className="game-header-actions">
             <ThemeToggle />
             {!loading && round && (
@@ -294,14 +287,13 @@ function GameApp() {
 
       {loading && (
         <section className="loading-stage" role="status" aria-live="polite">
-          <div className="loading-mark" aria-hidden="true">Aa</div>
           <p>Loading fonts…</p>
         </section>
       )}
 
       {!loading && round && (
         <>
-          <p className="play-instruction" aria-live="polite">{ROUND_PROMPTS[round.round - 1] ?? 'Choose the matching font.'}</p>
+          <p className="play-instruction" aria-live="polite">{getRoundStudyGuide(round.round).instruction}</p>
           <SpecimenCanvas round={round} />
           {!reveal ? (
             <section className="foundry-options" aria-labelledby="options-heading">
@@ -324,9 +316,6 @@ function GameApp() {
           ) : (
             <RevealOverlay
               reveal={reveal}
-              targetFamily={round.target.renderFamily}
-              targetWeight={round.target.assetWeight}
-              targetStyle={round.target.assetStyle}
               onNext={() => {
                 if (transitionRef.current !== null) window.clearTimeout(transitionRef.current);
                 if (reveal.isComplete) {
@@ -347,7 +336,6 @@ function GameApp() {
 
       {!loading && !round && !reveal && game && game.status !== 'COMPLETED' && (
         <section className="loading-stage" role="status" aria-live="polite">
-          <div className="loading-mark" aria-hidden="true">Aa</div>
           <p>No active round is available.</p>
           <button className="primary-button" onClick={() => void syncGame()}>Refresh game <span aria-hidden="true">↻</span></button>
         </section>

@@ -61,7 +61,7 @@ function SplashApp() {
   if (deleted) {
     return (
       <main className="splash-shell">
-        <header className="splash-header"><div className="wordmark">font<span>Wars</span></div><ThemeToggle /></header>
+        <header className="splash-header"><div className="wordmark"><span className="wordmark-regular">font</span><span className="wordmark-bold">Wars</span></div><ThemeToggle /></header>
         <section className="privacy-confirmed" role="status" aria-live="polite">
           <h1>Game data deleted</h1>
           <p>Your fontWars profile and saved game records have been removed.</p>
@@ -72,11 +72,10 @@ function SplashApp() {
 
   return (
     <main className="splash-shell">
-      <header className="splash-header"><div className="wordmark">font<span>Wars</span></div><ThemeToggle /></header>
+      <header className="splash-header"><div className="wordmark"><span className="wordmark-regular">font</span><span className="wordmark-bold">Wars</span></div><ThemeToggle /></header>
       <section className="splash-intro" aria-labelledby="splash-title">
         <h1 id="splash-title">A typographical skill game.</h1>
         <p className="splash-lead">Flaunt your keen sense of design.</p>
-        <div className="splash-mark" aria-hidden="true">Aa</div>
         <p className="splash-note">Playing fontWars is insanely addictive. Use responsibly.</p>
       </section>
       <footer className="splash-footer">
