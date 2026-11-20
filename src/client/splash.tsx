@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { isWebPreview } from './platform';
 import { deleteMyGameData, loadGame } from './api';
-import { formatEdition, formatScore, formatUtcDate } from '../shared/format';
+import { formatScore } from '../shared/format';
 import { appReady, journeyStart } from './telemetry';
 import './styles.css';
 
@@ -16,24 +16,16 @@ function SplashApp() {
 
   useEffect(() => {
     appReady();
-    loadGame().then(setGame).catch((e: unknown) => setError(e instanceof Error ? e.message : 'Could not load today’s duel.'));
+    loadGame().then(setGame).catch((cause: unknown) => {
+      setError(cause instanceof Error ? cause.message : 'Could not load today’s game.');
+    });
   }, []);
 
   const status = game?.status ?? 'UNSTARTED';
-  const title = status === 'COMPLETED'
-    ? 'View specimen sheet'
-    : status === 'IN_PROGRESS' ? 'Resume duel' : 'Enter the Type Foundry';
-  const statusLine = isWebPreview()
-    ? status === 'COMPLETED'
-      ? `Practice complete · ${formatScore(game?.totalScore ?? 0)} pts`
-      : status === 'IN_PROGRESS'
-        ? `Resume practice · Round ${Math.min(game?.currentRound ?? 1, 5)} of 5`
-        : 'Browser preview · 5 practice specimens'
-    : status === 'COMPLETED'
-      ? `Completed · ${formatScore(game?.totalScore ?? 0)} pts${game && game.playerCount > 1 ? ` · Top ${game.percentile ?? 100}%` : ' · First on the board'}`
-      : status === 'IN_PROGRESS'
-        ? `Resume Round ${Math.min(game?.currentRound ?? 1, 5)} of 5`
-        : `5 daily specimens · Subreddit avg ${game?.averageAccuracy ? `${game.averageAccuracy}%` : '—'}`;
+  const buttonLabel = status === 'COMPLETED' ? 'View results' : status === 'IN_PROGRESS' ? 'Resume game' : 'Play fontWars';
+  const statusDetail = status === 'COMPLETED'
+    ? `Today’s score: ${formatScore(game?.totalScore ?? 0)} points`
+    : status === 'IN_PROGRESS' ? `Round ${Math.min(game?.currentRound ?? 1, 5)} of 5` : '';
 
   async function removeGameData() {
     setDeleting(true);
@@ -61,7 +53,7 @@ function SplashApp() {
       requestExpandedMode(event.nativeEvent, 'game');
     } catch (cause) {
       setBusy(false);
-      setError(cause instanceof Error ? cause.message : 'Could not open the expanded game.');
+      setError(cause instanceof Error ? cause.message : 'Could not open fontWars.');
     }
   }
 
@@ -71,7 +63,7 @@ function SplashApp() {
         <header className="splash-header"><div className="wordmark">font<span>Wars</span></div></header>
         <section className="privacy-confirmed" role="status" aria-live="polite">
           <h1>Game data deleted</h1>
-          <p>{isWebPreview() ? 'Your browser-local preview session has been removed.' : 'Your fontWars profile and linked game records have been removed. Reddit comments you previously posted remain under Reddit’s controls.'}</p>
+          <p>Your fontWars profile and saved game records have been removed.</p>
         </section>
       </main>
     );
@@ -79,36 +71,30 @@ function SplashApp() {
 
   return (
     <main className="splash-shell">
-      {isWebPreview() && <p className="web-preview-banner" role="status">WEB PREVIEW · Gameplay and progress are stored in this browser. Reddit-only features are disabled.</p>}
-      <header className="splash-header">
-        <div className="wordmark">font<span>Wars</span></div>
-        <div className="edition-tag">Vol. {formatEdition(game?.editionNumber ?? 14)}</div>
-        <time>{game ? formatUtcDate(game.date) : 'TODAY · UTC'}</time>
-      </header>
-      <section className="splash-specimen" aria-label="Today's typographic challenge">
-        <div className="specimen-index">THE DAILY TYPE DUEL / NO. {formatEdition(game?.editionNumber ?? 14)}</div>
-        <div className="splash-glyph" aria-hidden="true">Aa<span>g</span>Rr</div>
-        <div className="baseline-line"><span>CAP HEIGHT</span><i></i><span>BASELINE</span></div>
-        <div className="splash-copy">
-          <strong>{statusLine}</strong>
-          <span>Five rounds. Twelve seconds each. One shared specimen sheet.</span>
-        </div>
-        <div className="registration-mark">TYPE<br />/ FOUNDRY<br />EST. 2026</div>
+      <header className="splash-header"><div className="wordmark">font<span>Wars</span></div></header>
+      <section className="splash-intro" aria-labelledby="splash-title">
+        <h1 id="splash-title">A typographical skill game.</h1>
+        <p className="splash-lead">Flaunt your keen sense of design.</p>
+        <div className="splash-mark" aria-hidden="true">Aa</div>
+        <p className="splash-note">Playing fontWars is insanely addictive. Use responsibly.</p>
       </section>
       <footer className="splash-footer">
-        <div className="splash-metrics">
-          {isWebPreview() ? <span>Progress is saved in this browser</span> : <><span><b>{game?.playedToday.toLocaleString('en-US') ?? '—'}</b> played today</span>{Boolean(game?.streak) && <span className="streak-pill">{game?.streak} day streak</span>}</>}
-        </div>
+        {statusDetail && <p className="splash-status">{statusDetail}</p>}
         <button className="primary-button splash-cta" onClick={openGame} disabled={busy}>
-          {busy ? 'Opening foundry…' : title}<span aria-hidden="true">↗</span>
+          {busy ? 'Opening…' : buttonLabel}<span aria-hidden="true">↗</span>
         </button>
+        {!isWebPreview() && game && (
+          <div className="splash-metrics" aria-label="Community activity">
+            <span><b>{game.playedToday.toLocaleString('en-US')}</b> played today</span>
+            {Boolean(game.streak) && <span className="streak-pill">{game.streak} day streak</span>}
+          </div>
+        )}
         {error && <p className="inline-error" role="alert">{error}</p>}
-        <p className="splash-footnote">{isWebPreview() ? 'A browser-only preview. Reddit community features require a Devvit installation.' : `A daily typographic identification game for r/${game?.subredditName ?? 'this community'}.`}</p>
         {!deleteArmed ? (
           <button className="text-button data-manage-link" onClick={() => setDeleteArmed(true)}>Manage game data</button>
         ) : (
           <section className="data-delete-prompt" aria-label="Delete fontWars data">
-            <p>Delete your fontWars profile, streak, leaderboard entry and saved round records? This cannot be undone. Reddit comments you posted remain.</p>
+            <p>Delete your fontWars profile, streak, leaderboard entry and saved round records? This cannot be undone.</p>
             <div className="privacy-confirm-actions">
               <button className="text-button" onClick={() => setDeleteArmed(false)} disabled={deleting}>Keep data</button>
               <button className="danger-button" onClick={() => void removeGameData()} disabled={deleting}>{deleting ? 'Deleting…' : 'Confirm deletion'}</button>

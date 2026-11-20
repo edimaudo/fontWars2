@@ -4,42 +4,38 @@ export interface RoundStudyGuide {
   diagnosticNote: string;
 }
 
-/**
- * A five-step observation curriculum. It progressively changes what the player
- * should inspect; it does not claim to rank the supplied font files by visual
- * difficulty. That requires reviewing the actual user-provided typefaces.
- */
+/** Short prompts for the five font-identification rounds. */
 export const ROUND_STUDY_PLAN: readonly RoundStudyGuide[] = [
   {
-    stage: 'FOUNDATION',
-    instruction: 'Start with the silhouette: compare the overall width, height and shape of the word.',
-    diagnosticNote: 'Start broad. Compare the word’s overall silhouette, proportions and visual density before focusing on individual letters.',
+    stage: 'SHAPE',
+    instruction: 'Compare the overall shape of the word.',
+    diagnosticNote: 'Look at the word as a whole: its width, proportions and overall shape.',
   },
   {
     stage: 'PROPORTION',
-    instruction: 'Compare cap height, x-height and the proportions of rounded letters.',
-    diagnosticNote: 'Look at proportion. Cap height, x-height and the width of rounded forms can make two typefaces feel very different.',
+    instruction: 'Compare the height and width of the letters.',
+    diagnosticNote: 'Compare tall and rounded letters, including their relative height and width.',
   },
   {
-    stage: 'LETTERFORMS',
-    instruction: 'Inspect distinctive forms, apertures and terminals across the specimen.',
-    diagnosticNote: 'Inspect individual letterforms. Apertures, terminals and the construction of letters such as a, g, e and R are useful comparison points.',
+    stage: 'DETAIL',
+    instruction: 'Look closely at distinctive letter shapes.',
+    diagnosticNote: 'Notice the details that distinguish letters such as a, g, e and R.',
   },
   {
-    stage: 'STROKE CONTRAST',
-    instruction: 'Compare thick and thin strokes, joins and changes in weight.',
-    diagnosticNote: 'Compare stroke construction. Look for changes between thick and thin strokes, the shape of joins and the way curves transition into stems.',
+    stage: 'STROKE',
+    instruction: 'Compare thick and thin strokes.',
+    diagnosticNote: 'Look for differences between thick and thin strokes and how curves meet stems.',
   },
   {
-    stage: 'SPACING & RHYTHM',
-    instruction: 'Read the full line: compare spacing, kerning and the word’s visual rhythm.',
-    diagnosticNote: 'Step back and read the whole specimen. Letter spacing, kerning and the rhythm of positive and negative space should support your final comparison.',
+    stage: 'SPACING',
+    instruction: 'Look at the spacing between letters.',
+    diagnosticNote: 'Read the word as a whole and compare its spacing and rhythm.',
   },
 ] as const;
 
 export function getRoundStudyGuide(roundNumber: number): RoundStudyGuide {
   if (!Number.isInteger(roundNumber) || roundNumber < 1 || roundNumber > ROUND_STUDY_PLAN.length) {
-    throw new Error(`Round study guide is not defined for round ${roundNumber}.`);
+    throw new Error(`Round guide is not defined for round ${roundNumber}.`);
   }
   return ROUND_STUDY_PLAN[roundNumber - 1]!;
 }

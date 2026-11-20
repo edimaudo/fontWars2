@@ -1,17 +1,23 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { exitExpandedMode } from '@devvit/web/client';
 import type { ActiveRoundPayload, InitPayload, RevealPayload } from '../shared/types';
-import { formatEdition, formatScore, formatUtcDate } from '../shared/format';
 import { appReady, journeyEnd, journeyProgress } from './telemetry';
 import { loadGame, registerFontFaces, startRound, submitAnswer } from './api';
 import { SpecimenCanvas } from './components/SpecimenCanvas';
 import { RevealOverlay } from './components/RevealOverlay';
 import { ResultCard } from './components/ResultCard';
-import { hasDismissedFirstRoundHint, persistFirstRoundHintDismissal } from './onboarding';
 import { isWebPreview } from './platform';
 import './styles.css';
 
 const ROUND_MS = 12_000;
+const ROUND_PROMPTS = [
+  'Compare the overall shape of the word.',
+  'Compare the height and width of the letters.',
+  'Look closely at distinctive letter shapes.',
+  'Compare thick and thin strokes.',
+  'Look at the spacing between letters.',
+] as const;
 
 function GameApp() {
   const [game, setGame] = useState<InitPayload | null>(null);
@@ -20,20 +26,14 @@ function GameApp() {
   const [remainingMs, setRemainingMs] = useState(ROUND_MS);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [loupe, setLoupe] = useState(false);
-  const [firstRoundHintVisible, setFirstRoundHintVisible] = useState(() => {
-    try {
-      return !hasDismissedFirstRoundHint(typeof window === 'undefined' ? null : window.localStorage);
-    } catch {
-      return true;
-    }
-  });
+  const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [error, setError] = useState('');
   const [fontReady, setFontReady] = useState(false);
   const deadlineRef = useRef(0);
   const submittedRef = useRef(false);
   const timerFrameRef = useRef<number | null>(null);
   const transitionRef = useRef<number | null>(null);
+  const endDialogRef = useRef<HTMLElement | null>(null);
 
   const syncGame = useCallback(async () => {
     const fresh = await loadGame();
@@ -41,14 +41,52 @@ function GameApp() {
     return fresh;
   }, []);
 
-  const dismissFirstRoundHint = useCallback(() => {
-    setFirstRoundHintVisible(false);
-    try {
-      persistFirstRoundHintDismissal(typeof window === 'undefined' ? null : window.localStorage);
-    } catch {
-      // The hint is still dismissed for this in-memory session if storage is blocked.
+  useEffect(() => {
+    if (!showEndConfirm) return;
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const dialog = endDialogRef.current;
+    const controls: HTMLButtonElement[] = dialog
+      ? Array.from(dialog.querySelectorAll('button:not(:disabled)')) as HTMLButtonElement[]
+      : [];
+    controls[0]?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setShowEndConfirm(false);
+        return;
+      }
+      if (event.key !== 'Tab' || controls.length === 0) return;
+      const first = controls[0]!;
+      const last = controls[controls.length - 1]!;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      previous?.focus();
+    };
+  }, [showEndConfirm]);
+
+  function leaveGame(event: React.MouseEvent<HTMLButtonElement>) {
+    setShowEndConfirm(false);
+    if (isWebPreview()) {
+      window.location.assign('/');
+      return;
     }
-  }, []);
+    try {
+      exitExpandedMode(event.nativeEvent);
+    } catch {
+      setError('Could not close fontWars. Use the back button to return.');
+    }
+  }
 
   const activateRound = useCallback(async (source?: ActiveRoundPayload | null) => {
     setLoading(true);
@@ -65,15 +103,15 @@ function GameApp() {
             setLoading(false);
             return;
           }
-          throw new Error('No active specimen was returned. Refresh the game to continue.');
+          throw new Error('No active round was returned. Refresh fontWars to continue.');
         }
 
         setFontReady(false);
         await registerFontFaces(prepared);
         setFontReady(true);
 
-        // A resumed round's server timer continued while the page and fonts loaded.
-        // Refresh its remaining time after preload so client rendering adds no grace time.
+        // A resumed round's server timer continues while the page and fonts load.
+        // Refresh the remaining time after preloading so rendering adds no grace time.
         if (prepared.startedAt !== null) {
           fresh = await loadGame();
           setGame(fresh);
@@ -83,8 +121,6 @@ function GameApp() {
             return;
           }
           if (fresh.activeRound.round !== prepared.round) {
-            // The server may have timed out this round during font loading. Load the
-            // next specimen's five faces before starting its clock.
             prepared = fresh.activeRound;
             continue;
           }
@@ -114,9 +150,9 @@ function GameApp() {
         return;
       }
 
-      throw new Error('The round changed repeatedly while its fonts were loading. Refresh to continue.');
+      throw new Error('The round changed repeatedly while fonts were loading. Refresh to continue.');
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'The next specimen could not be prepared.');
+      setError(cause instanceof Error ? cause.message : 'The next round could not be prepared.');
       setLoading(false);
     }
   }, []);
@@ -165,7 +201,6 @@ function GameApp() {
       setReveal(result);
       setSubmitting(false);
       setRemainingMs(0);
-      // Analytics must never hold the reveal transition or interrupt a round.
       void journeyProgress(result.result.round);
       if (result.isComplete) void journeyEnd(result.totalScore);
       transitionRef.current = window.setTimeout(async () => {
@@ -176,7 +211,7 @@ function GameApp() {
             setRound(null);
             setReveal(null);
           } catch (cause) {
-            setError(cause instanceof Error ? cause.message : 'Could not load your result sheet.');
+            setError(cause instanceof Error ? cause.message : 'Could not load your results.');
           }
         } else {
           await activateRound();
@@ -191,7 +226,7 @@ function GameApp() {
         setGame(fresh);
         if (fresh.activeRound) await activateRound(fresh.activeRound);
       } catch {
-        // The error text remains visible; the user can retry with Refresh.
+        // Keep the error visible so the player can retry.
       }
     }
   }, [activateRound, reveal, round, submitting, syncGame]);
@@ -214,7 +249,7 @@ function GameApp() {
   }, [finishRound, fontReady, loading, reveal, round, submitting]);
 
   if (game?.status === 'COMPLETED' && !round && !reveal) {
-    return <ResultCard game={game} onRefresh={syncGame} />;
+    return <ResultCard game={game} />;
   }
 
   const seconds = Math.max(0, remainingMs / 1_000);
@@ -222,23 +257,21 @@ function GameApp() {
   const progressRound = reveal ? reveal.result.round : (round?.round ?? game?.currentRound ?? 1);
 
   return (
-    <main
-      className="game-shell"
-      onPointerDownCapture={() => { if (round?.round === 1 && firstRoundHintVisible) dismissFirstRoundHint(); }}
-      onKeyDownCapture={() => { if (round?.round === 1 && firstRoundHintVisible) dismissFirstRoundHint(); }}
-    >
-      {isWebPreview() && <p className="web-preview-banner" role="status">WEB PREVIEW · Browser-local practice session. Reddit community features are disabled.</p>}
+    <main className="game-shell">
       <header className="game-header">
         <div className="game-brand-row">
           <div className="wordmark">font<span>Wars</span></div>
-          <span className="edition-tag">VOL. {formatEdition(game?.editionNumber ?? 14)}</span>
-          <span className="game-date">{game ? formatUtcDate(game.date) : 'UTC DAILY DUEL'}</span>
+          {!loading && round && (
+            <button type="button" className="end-game-button" onClick={() => setShowEndConfirm(true)} disabled={submitting}>
+              End game
+            </button>
+          )}
         </div>
         <div className="round-hud">
           <div
             className="round-progress"
             role="progressbar"
-            aria-label="Daily duel progress"
+            aria-label="Game progress"
             aria-valuemin={1}
             aria-valuemax={5}
             aria-valuenow={progressRound}
@@ -252,37 +285,23 @@ function GameApp() {
             <div className="timer-track"><i style={{ transform: `scaleX(${Math.max(0, remainingMs / ROUND_MS)})` }} /></div>
             <b>{seconds.toFixed(1)}s</b>
           </div>
-          <button className={`loupe-button ${loupe ? 'loupe-active' : ''}`} onClick={() => setLoupe((value) => !value)} aria-pressed={loupe}>
-            Loupe <span aria-hidden="true">⌕</span>
-          </button>
         </div>
       </header>
 
       {loading && (
         <section className="loading-stage" role="status" aria-live="polite">
           <div className="loading-mark" aria-hidden="true">Aa</div>
-          <p>{fontReady ? 'Preparing the foundry…' : 'Loading the five typefaces…'}</p>
+          <p>Loading fonts…</p>
         </section>
       )}
+
       {!loading && round && (
         <>
-          <div className="play-instruction" aria-live="polite">
-            <span>IDENTIFY THE TYPEFACE</span>
-            <b>{round.instruction}</b>
-          </div>
-          {round.round === 1 && firstRoundHintVisible && (
-            <aside className="first-round-hint" role="status" aria-live="polite">
-              <div>
-                <b>FIRST SPECIMEN</b>
-                <p>Compare the letterforms above with the four choices. One selection locks your answer.</p>
-              </div>
-              <button type="button" onClick={dismissFirstRoundHint} aria-label="Dismiss first-round tip">Dismiss</button>
-            </aside>
-          )}
-          <SpecimenCanvas round={round} loupe={loupe} revealed={Boolean(reveal)} />
+          <p className="play-instruction" aria-live="polite">{ROUND_PROMPTS[round.round - 1] ?? 'Choose the matching font.'}</p>
+          <SpecimenCanvas round={round} />
           {!reveal ? (
-            <section className="foundry-options" aria-label="Choose the matching typeface">
-              <div className="options-heading"><span>THE FOUNDRY / SELECT ONE</span><small>ONE TAP LOCKS YOUR ANSWER</small></div>
+            <section className="foundry-options" aria-labelledby="options-heading">
+              <h2 id="options-heading" className="options-title">Which font is it?</h2>
               <div className="option-grid">
                 {round.options.map((option, index) => (
                   <button
@@ -290,10 +309,10 @@ function GameApp() {
                     key={option.id}
                     onClick={() => void finishRound(option.id)}
                     disabled={submitting || remainingMs <= 0}
+                    aria-label={`Choose ${option.name}`}
                   >
-                    <span className="option-number">0{index + 1}</span>
+                    <span className="option-number" aria-hidden="true">{index + 1}</span>
                     <strong style={{ fontFamily: `"${option.renderFamily}", ${option.fallbackCss}`, fontWeight: option.assetWeight as React.CSSProperties['fontWeight'], fontStyle: option.assetStyle, fontSynthesis: 'none' }}>{option.name}</strong>
-                    <span className="option-meta">{option.assetFormat === 'opentype' ? 'OTF' : 'TTF'}</span>
                   </button>
                 ))}
               </div>
@@ -325,13 +344,32 @@ function GameApp() {
       {!loading && !round && !reveal && game && game.status !== 'COMPLETED' && (
         <section className="loading-stage" role="status" aria-live="polite">
           <div className="loading-mark" aria-hidden="true">Aa</div>
-          <p>All specimens are accounted for.</p>
-          <button className="primary-button" onClick={() => void syncGame()}>Refresh game ↻</button>
+          <p>No active round is available.</p>
+          <button className="primary-button" onClick={() => void syncGame()}>Refresh game <span aria-hidden="true">↻</span></button>
         </section>
       )}
 
+      {showEndConfirm && (
+        <div className="end-game-backdrop">
+          <section
+            ref={endDialogRef}
+            className="end-game-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="end-game-title"
+            aria-describedby="end-game-description"
+          >
+            <h2 id="end-game-title">End this game?</h2>
+            <p id="end-game-description">Completed rounds are saved. The current round will continue while you are away.</p>
+            <div className="end-game-actions">
+              <button type="button" className="text-button" onClick={() => setShowEndConfirm(false)}>Keep playing</button>
+              <button type="button" className="end-game-confirm" onClick={leaveGame}>End game</button>
+            </div>
+          </section>
+        </div>
+      )}
+
       {error && <div className="game-error" role="alert">{error}<button onClick={() => void syncGame().then((fresh) => fresh.activeRound && activateRound(fresh.activeRound))}>Retry</button></div>}
-      <footer className="game-footer"><span>fontWars / TYPE FOUNDRY</span><span>{formatScore(game?.totalScore ?? 0)} PTS</span></footer>
     </main>
   );
 }

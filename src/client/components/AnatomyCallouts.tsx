@@ -55,13 +55,13 @@ export function AnatomyCallouts({ family, weight, style }: Props) {
   }, [family, style, weight]);
 
   return (
-    <section className="anatomy-block" aria-label="Typeface anatomy study">
+    <section className="anatomy-block" aria-label="Font details">
       <div className="anatomy-heading">
-        <b>LETTERFORM ANATOMY</b>
-        <span>MEASURED IN THE TARGET TYPEFACE</span>
+        <b>FONT DETAILS</b>
+        <span>MEASURED FROM THIS FONT</span>
       </div>
       {data ? (
-        <svg className="anatomy-diagram" viewBox={`0 0 ${SVG_WIDTH} 124`} role="img" aria-label="Cap height, x-height, baseline and descender measured using the target typeface">
+        <svg className="anatomy-diagram" viewBox={`0 0 ${SVG_WIDTH} 124`} role="img" aria-label="Cap height, x-height, baseline and descender measured using the target font">
           <g className="anatomy-guide anatomy-guide--cap">
             <line x1="88" x2="408" y1={data.guides.capHeight} y2={data.guides.capHeight} />
             <circle cx={data.capX} cy={data.guides.capHeight} r="4" />
@@ -85,9 +85,9 @@ export function AnatomyCallouts({ family, weight, style }: Props) {
           <text className="anatomy-glyph" x={SVG_WIDTH / 2} y={BASELINE} textAnchor="middle" fontFamily={`"${family}", sans-serif`} fontSize={FONT_SIZE} fontWeight={weight} fontStyle={style}>Hxp</text>
         </svg>
       ) : (
-        <p className="anatomy-unavailable">Anatomy measurements are unavailable for this font in the current browser.</p>
+        <p className="anatomy-unavailable">Font measurements are unavailable in this browser.</p>
       )}
-      <p className="anatomy-caption">H shows cap height · x shows lowercase height · p shows the descender below the baseline</p>
+      <p className="anatomy-caption">H marks cap height · x marks lowercase height · p marks the descender</p>
     </section>
   );
 }
