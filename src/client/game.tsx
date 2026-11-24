@@ -8,7 +8,8 @@ import { SpecimenCanvas } from './components/SpecimenCanvas';
 import { RevealOverlay } from './components/RevealOverlay';
 import { ResultCard } from './components/ResultCard';
 import { isWebPreview } from './platform';
-import { ThemeToggle } from './components/ThemeToggle';
+import { SettingsPage } from './components/SettingsPage';
+import { applySavedTheme } from './theme';
 import { getRoundStudyGuide } from '../shared/progression';
 import './styles.css';
 
@@ -21,9 +22,13 @@ function GameApp() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [dataWasDeleted, setDataWasDeleted] = useState(false);
   const [error, setError] = useState('');
   const [fontReady, setFontReady] = useState(false);
   const deadlineRef = useRef(0);
+  const remainingMsRef = useRef(ROUND_MS);
+  const timerPausedRef = useRef(false);
   const submittedRef = useRef(false);
   const timerFrameRef = useRef<number | null>(null);
   const transitionRef = useRef<number | null>(null);
@@ -135,8 +140,9 @@ function GameApp() {
         }
 
         setRound(live);
-        setRemainingMs(live.remainingMs ?? ROUND_MS);
-        deadlineRef.current = performance.now() + (live.remainingMs ?? ROUND_MS);
+        remainingMsRef.current = live.remainingMs ?? ROUND_MS;
+        setRemainingMs(remainingMsRef.current);
+        deadlineRef.current = performance.now() + remainingMsRef.current;
         submittedRef.current = false;
         setReveal(null);
         setSubmitting(false);
@@ -153,6 +159,7 @@ function GameApp() {
 
   useEffect(() => {
     appReady();
+    applySavedTheme();
     let mounted = true;
     loadGame().then(async (initial) => {
       if (!mounted) return;
@@ -194,6 +201,7 @@ function GameApp() {
       }
       setReveal(result);
       setSubmitting(false);
+      remainingMsRef.current = 0;
       setRemainingMs(0);
       void journeyProgress(result.result.round);
       if (result.isComplete) void journeyEnd(result.totalScore);
@@ -226,9 +234,18 @@ function GameApp() {
   }, [activateRound, reveal, round, submitting, syncGame]);
 
   useEffect(() => {
+    if (showSettings) {
+      timerPausedRef.current = true;
+      return;
+    }
     if (!round || reveal || loading || submitting || !fontReady || submittedRef.current) return;
+    if (timerPausedRef.current) {
+      deadlineRef.current = performance.now() + remainingMsRef.current;
+      timerPausedRef.current = false;
+    }
     const tick = () => {
       const next = Math.max(0, deadlineRef.current - performance.now());
+      remainingMsRef.current = next;
       setRemainingMs(next);
       if (next <= 0) {
         void finishRound(null);
@@ -240,10 +257,27 @@ function GameApp() {
     return () => {
       if (timerFrameRef.current !== null) cancelAnimationFrame(timerFrameRef.current);
     };
-  }, [finishRound, fontReady, loading, reveal, round, submitting]);
+  }, [finishRound, fontReady, loading, reveal, round, showSettings, submitting]);
+
+  if (showSettings) {
+    return (
+      <SettingsPage
+        onBack={(event) => {
+          if (dataWasDeleted) {
+            if (isWebPreview()) window.location.assign('/');
+            else exitExpandedMode(event.nativeEvent);
+          } else {
+            setShowSettings(false);
+          }
+        }}
+        backLabel={dataWasDeleted ? 'Return to fontWars' : game?.status === 'COMPLETED' ? 'Back to results' : 'Back to game'}
+        onDeleted={() => setDataWasDeleted(true)}
+      />
+    );
+  }
 
   if (game?.status === 'COMPLETED' && !round && !reveal) {
-    return <ResultCard game={game} />;
+    return <ResultCard game={game} onOpenSettings={() => setShowSettings(true)} />;
   }
 
   const seconds = Math.max(0, remainingMs / 1_000);
@@ -256,7 +290,7 @@ function GameApp() {
         <div className="game-brand-row">
           <div className="wordmark"><span className="wordmark-regular">font</span><span className="wordmark-bold">Wars</span></div>
           <div className="game-header-actions">
-            <ThemeToggle />
+            <button type="button" className="settings-open-button" onClick={() => setShowSettings(true)}>Settings</button>
             {!loading && round && (
               <button type="button" className="end-game-button" onClick={() => setShowEndConfirm(true)} disabled={submitting}>
                 End game

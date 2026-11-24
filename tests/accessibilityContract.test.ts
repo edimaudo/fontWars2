@@ -101,21 +101,35 @@ describe('fontWars interface and accessibility contracts', () => {
     expect(contrast('#221d14', '#e2b65f')).toBeGreaterThanOrEqual(4.5);
   });
 
-  it('provides the light/dark theme toggle across the app and keeps game-data controls secondary', () => {
-    const theme = read('../src/client/components/ThemeToggle.tsx');
+  it('centralizes theme and data controls on the Settings page', () => {
+    const settings = read('../src/client/components/SettingsPage.tsx');
+    const theme = read('../src/client/theme.ts');
     const splash = read('../src/client/splash.tsx');
     const game = read('../src/client/game.tsx');
     const result = read('../src/client/components/ResultCard.tsx');
     const css = read('../src/client/styles.css');
-    expect(theme).toContain("aria-pressed={theme === 'dark'}");
+    expect(settings).toContain('Appearance');
+    expect(settings).toContain('Manage my data');
+    expect(settings).toContain("setTheme('light')");
+    expect(settings).toContain("setTheme('dark')");
+    expect(settings).toContain('aria-pressed={theme ===');
+    expect(settings).toContain('deleteMyGameData');
     expect(theme).toContain('localStorage.setItem');
-    expect(splash).toContain('<ThemeToggle />');
-    expect(game).toContain('<ThemeToggle />');
-    expect(result).toContain('<ThemeToggle />');
-    expect(css).toContain(':root[data-theme="dark"]');
-    expect(splash).toContain('<details className="privacy-details">');
-    expect(result).toContain('<details className="privacy-details">');
-    expect(result).not.toContain('<section className="privacy-actions"');
+    expect(theme).toContain('applySavedTheme');
+    expect(splash).toContain('<SettingsPage');
+    expect(game).toContain('<SettingsPage');
+    expect(result).toContain('onOpenSettings');
+    expect(splash).toContain('>Settings</button>');
+    expect(game).toContain('>Settings</button>');
+    expect(css).toContain('.settings-shell');
+    expect(css).toContain('.settings-theme-options');
+    expect(css).toContain('.settings-open-button');
+    expect(splash).not.toContain('ThemeToggle');
+    expect(game).not.toContain('ThemeToggle');
+    expect(result).not.toContain('ThemeToggle');
+    expect(splash).not.toContain('Manage game data');
+    expect(result).not.toContain('Manage game data');
+    expect(result).not.toContain('deleteMyGameData');
   });
 
   it('centres the landing page and uses a single-colour Inter wordmark with two weights', () => {
@@ -136,13 +150,5 @@ describe('fontWars interface and accessibility contracts', () => {
     expect(read('../src/shared/progression.ts')).not.toContain('visual density');
   });
 
-  it('keeps self-service data deletion available on the landing page and results', () => {
-    const splash = read('../src/client/splash.tsx');
-    expect(splash).toContain('Manage game data');
-    expect(splash).toContain('Confirm deletion');
-    expect(splash).toContain('deleteMyGameData');
-    const result = read('../src/client/components/ResultCard.tsx');
-    expect(result).toContain('Delete my data');
-    expect(result).toContain('Confirm deletion');
-  });
+
 });

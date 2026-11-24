@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { isWebPreview } from './platform';
-import { deleteMyGameData, loadGame } from './api';
+import { loadGame } from './api';
 import { formatScore } from '../shared/format';
 import { appReady, journeyStart } from './telemetry';
-import { ThemeToggle } from './components/ThemeToggle';
+import { SettingsPage } from './components/SettingsPage';
+import { applySavedTheme } from './theme';
 import './styles.css';
 
 function SplashApp() {
   const [game, setGame] = useState<Awaited<ReturnType<typeof loadGame>> | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [deleteArmed, setDeleteArmed] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [deleted, setDeleted] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     appReady();
+    applySavedTheme();
     loadGame().then(setGame).catch((cause: unknown) => {
       setError(cause instanceof Error ? cause.message : 'Could not load today’s game.');
     });
@@ -27,20 +27,6 @@ function SplashApp() {
   const statusDetail = status === 'COMPLETED'
     ? `Today’s score: ${formatScore(game?.totalScore ?? 0)} points`
     : status === 'IN_PROGRESS' ? `Round ${Math.min(game?.currentRound ?? 1, 5)} of 5` : '';
-
-  async function removeGameData() {
-    setDeleting(true);
-    setError('');
-    try {
-      await deleteMyGameData();
-      setDeleted(true);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not delete your game data.');
-      setDeleteArmed(false);
-    } finally {
-      setDeleting(false);
-    }
-  }
 
   async function openGame(event: React.MouseEvent<HTMLButtonElement>) {
     setBusy(true);
@@ -58,21 +44,24 @@ function SplashApp() {
     }
   }
 
-  if (deleted) {
+  if (showSettings) {
     return (
-      <main className="splash-shell">
-        <header className="splash-header"><div className="wordmark"><span className="wordmark-regular">font</span><span className="wordmark-bold">Wars</span></div><ThemeToggle /></header>
-        <section className="privacy-confirmed" role="status" aria-live="polite">
-          <h1>Game data deleted</h1>
-          <p>Your fontWars profile and saved game records have been removed.</p>
-        </section>
-      </main>
+      <SettingsPage
+        onBack={() => setShowSettings(false)}
+        backLabel="Back to fontWars"
+        onDeleted={async () => {
+          try { setGame(await loadGame()); } catch { /* The confirmation remains visible if refresh fails. */ }
+        }}
+      />
     );
   }
 
   return (
     <main className="splash-shell">
-      <header className="splash-header"><div className="wordmark"><span className="wordmark-regular">font</span><span className="wordmark-bold">Wars</span></div><ThemeToggle /></header>
+      <header className="splash-header">
+        <div className="wordmark"><span className="wordmark-regular">font</span><span className="wordmark-bold">Wars</span></div>
+        <button type="button" className="settings-open-button" onClick={() => setShowSettings(true)}>Settings</button>
+      </header>
       <section className="splash-intro" aria-labelledby="splash-title">
         <h1 id="splash-title">A typographical skill game.</h1>
         <p className="splash-lead">Flaunt your keen sense of design.</p>
@@ -90,20 +79,6 @@ function SplashApp() {
           </div>
         )}
         {error && <p className="inline-error" role="alert">{error}</p>}
-        <details className="privacy-details">
-          <summary>Manage game data</summary>
-          <div className="privacy-details-content">
-            <p>Delete your fontWars profile, streak, leaderboard entry and saved round records. This cannot be undone.</p>
-            {!deleteArmed ? (
-              <button className="text-button" onClick={() => setDeleteArmed(true)}>Delete my data</button>
-            ) : (
-              <div className="privacy-confirm-actions">
-                <button className="text-button" onClick={() => setDeleteArmed(false)} disabled={deleting}>Cancel</button>
-                <button className="danger-button" onClick={() => void removeGameData()} disabled={deleting}>{deleting ? 'Deleting…' : 'Confirm deletion'}</button>
-              </div>
-            )}
-          </div>
-        </details>
       </footer>
     </main>
   );

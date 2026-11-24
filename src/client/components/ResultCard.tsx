@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import type { InitPayload } from '../../shared/types';
 import { formatScore } from '../../shared/format';
-import { deleteMyGameData, equipFlair, loadLeaderboard, setNotifications, shareResult } from '../api';
+import { equipFlair, loadLeaderboard, setNotifications, shareResult } from '../api';
 import { isWebPreview } from '../platform';
-import { ThemeToggle } from './ThemeToggle';
 import { getRoundStudyGuide } from '../../shared/progression';
 
 interface Props {
   game: InitPayload;
+  onOpenSettings: () => void;
 }
 
-export function ResultCard({ game }: Props) {
+export function ResultCard({ game, onOpenSettings }: Props) {
   const [selected, setSelected] = useState<number | null>(0);
   const [sharing, setSharing] = useState(false);
   const [posted, setPosted] = useState(game.hasCommented);
@@ -18,9 +18,6 @@ export function ResultCard({ game }: Props) {
   const [notificationBusy, setNotificationBusy] = useState(false);
   const [push, setPush] = useState(game.push);
   const [message, setMessage] = useState('');
-  const [deleteArmed, setDeleteArmed] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [deleted, setDeleted] = useState(false);
   const [leaders, setLeaders] = useState<Array<{ username: string; score: number }>>([]);
   const scorePercent = Math.round((game.totalScore / 5_000) * 1_000) / 10;
   const correctCount = game.results.filter((entry) => entry.result.isCorrect).length;
@@ -78,38 +75,12 @@ export function ResultCard({ game }: Props) {
     }
   }
 
-  async function removeGameData() {
-    setDeleting(true);
-    setMessage('');
-    try {
-      const response = await deleteMyGameData();
-      setDeleted(true);
-      setMessage(response.note);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Could not delete your game data.');
-      setDeleteArmed(false);
-    } finally {
-      setDeleting(false);
-    }
-  }
-
-  if (deleted) {
-    return (
-      <main className="result-page">
-        <header className="game-brand-row"><div className="wordmark"><span className="wordmark-regular">font</span><span className="wordmark-bold">Wars</span></div><ThemeToggle /></header>
-        <section className="privacy-confirmed" role="status" aria-live="polite">
-          <h1>Game data deleted</h1>
-          <p>Your fontWars profile and saved game records have been removed.</p>
-        </section>
-      </main>
-    );
-  }
 
   return (
     <main className="result-page">
       <header className="game-brand-row">
         <div className="wordmark"><span className="wordmark-regular">font</span><span className="wordmark-bold">Wars</span></div>
-        <ThemeToggle />
+        <button type="button" className="settings-open-button" onClick={onOpenSettings}>Settings</button>
       </header>
       <section className="score-hero" aria-labelledby="score-heading">
         <h1 id="score-heading" className="result-heading">Your score</h1>
@@ -203,20 +174,6 @@ export function ResultCard({ game }: Props) {
         </section>
       )}
 
-      <details className="privacy-details">
-        <summary>Manage game data</summary>
-        <div className="privacy-details-content">
-          <p>Delete your profile, streak, leaderboard entry and saved round records. This cannot be undone.</p>
-          {!deleteArmed ? (
-            <button className="text-button" onClick={() => setDeleteArmed(true)} disabled={deleting}>Delete my data</button>
-          ) : (
-            <div className="privacy-confirm-actions">
-              <button className="text-button" onClick={() => setDeleteArmed(false)} disabled={deleting}>Cancel</button>
-              <button className="danger-button" onClick={() => void removeGameData()} disabled={deleting}>{deleting ? 'Deleting…' : 'Confirm deletion'}</button>
-            </div>
-          )}
-        </div>
-      </details>
       {message && <p className="inline-error" role="status">{message}</p>}
     </main>
   );
