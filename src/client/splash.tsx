@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { isWebPreview } from './platform';
-import { loadGame } from './api';
-import { formatScore } from '../shared/format';
 import { appReady, journeyStart } from './telemetry';
 import { SettingsPage } from './components/SettingsPage';
 import { applySavedTheme } from './theme';
 import './styles.css';
+import './splash-design.css';
 
 function SplashApp() {
-  const [game, setGame] = useState<Awaited<ReturnType<typeof loadGame>> | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -17,16 +15,7 @@ function SplashApp() {
   useEffect(() => {
     appReady();
     applySavedTheme();
-    loadGame().then(setGame).catch((cause: unknown) => {
-      setError(cause instanceof Error ? cause.message : 'Could not load today’s game.');
-    });
   }, []);
-
-  const status = game?.status ?? 'UNSTARTED';
-  const buttonLabel = status === 'COMPLETED' ? 'View results' : status === 'IN_PROGRESS' ? 'Resume game' : 'Play fontWars';
-  const statusDetail = status === 'COMPLETED'
-    ? `Today’s score: ${formatScore(game?.totalScore ?? 0)} points`
-    : status === 'IN_PROGRESS' ? `Round ${Math.min(game?.currentRound ?? 1, 5)} of 5` : '';
 
   async function openGame(event: React.MouseEvent<HTMLButtonElement>) {
     setBusy(true);
@@ -45,41 +34,58 @@ function SplashApp() {
   }
 
   if (showSettings) {
-    return (
-      <SettingsPage
-        onBack={() => setShowSettings(false)}
-        backLabel="Back to fontWars"
-        onDeleted={async () => {
-          try { setGame(await loadGame()); } catch { /* The confirmation remains visible if refresh fails. */ }
-        }}
-      />
-    );
+    return <SettingsPage onBack={() => setShowSettings(false)} backLabel="Back to fontWars" />;
   }
 
   return (
-    <main className="splash-shell">
-      <header className="splash-header">
-        <div className="wordmark"><span className="wordmark-regular">font</span><span className="wordmark-bold">Wars</span></div>
-        <button type="button" className="settings-open-button" onClick={() => setShowSettings(true)}>Settings</button>
-      </header>
-      <section className="splash-intro" aria-labelledby="splash-title">
-        <h1 id="splash-title">A typographical skill game.</h1>
-        <p className="splash-lead">Flaunt your keen sense of design.</p>
-        <p className="splash-note">Playing fontWars is insanely addictive. Use responsibly.</p>
-      </section>
-      <footer className="splash-footer">
-        {statusDetail && <p className="splash-status">{statusDetail}</p>}
-        <button className="primary-button splash-cta" onClick={openGame} disabled={busy}>
-          {busy ? 'Opening…' : buttonLabel}<span aria-hidden="true">↗</span>
-        </button>
-        {!isWebPreview() && game && (
-          <div className="splash-metrics" aria-label="Community activity">
-            <span><b>{game.playedToday.toLocaleString('en-US')}</b> played today</span>
-            {Boolean(game.streak) && <span className="streak-pill">{game.streak} day streak</span>}
+    <main className="splash-shell splash-duo-shell">
+
+      <section className="splash-hero" aria-labelledby="splash-title">
+        <div className="splash-copy">
+          <h1 className="wordmark splash-wordmark" aria-label="fontWars">
+            <span className="wordmark-regular">font</span>
+            <span className="wordmark-bold">Wars</span>
+          </h1>
+
+          <h2 id="splash-title" className="splash-challenge">
+            <span>Challenge your</span>
+            <span><mark>Font</mark> design knowledge</span>
+          </h2>
+
+          <h3 className="splash-note-sr">Playing fontWars is insanely addictive. Use responsibly.</h3>
+
+          <div className="splash-actions">
+            <button
+              type="button"
+              className="primary-button splash-cta"
+              onClick={(event) => void openGame(event)}
+              disabled={busy}
+            >
+              {busy ? 'Opening…' : 'Play'}
+            </button>
+            <button
+              type="button"
+              className="settings-open-button splash-settings-button"
+              onClick={() => setShowSettings(true)}
+            >
+              <span aria-hidden="true" className="splash-settings-symbol">⚙</span>
+              Settings
+            </button>
+            {error && <p className="inline-error" role="alert">{error}</p>}
           </div>
-        )}
-        {error && <p className="inline-error" role="alert">{error}</p>}
-      </footer>
+        </div>
+
+        <div className="splash-art" aria-hidden="true">
+          <div className="splash-art-blob" />
+          <div className="splash-art-card splash-art-card--back"><span>Aa</span></div>
+          <div className="splash-art-card splash-art-card--front"><span>Aa</span></div>
+          <div className="splash-art-card splash-art-card--serif"><span>Aa</span></div>
+          <span className="splash-art-spark splash-art-spark--one" />
+          <span className="splash-art-spark splash-art-spark--two" />
+          <span className="splash-art-spark splash-art-spark--three" />
+          <svg className="splash-art-swoosh" viewBox="0 0 420 110" focusable="false"><path d="M8 87 C82 89 92 45 150 41 C201 37 172 104 244 81 C300 64 346 26 410 8" /></svg>
+        </div>
+      </section>
     </main>
   );
 }

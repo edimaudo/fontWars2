@@ -1,0 +1,406 @@
+@font-face {
+  font-family: "fontWars Display";
+  src: url("/fonts/Quicksand_Bold.otf") format("opentype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* Duolingo-inspired landing page treatment. Kept separate from the shared game UI. */
+.splash-body {
+  min-height: 100dvh;
+  overflow-x: hidden;
+  background: #fffdf7;
+  color: #18233a;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.splash-shell.splash-duo-shell {
+  position: relative;
+  display: grid;
+  width: min(100%, 1500px);
+  min-height: 100svh;
+  place-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  margin: 0 auto;
+  padding: clamp(36px, 5vw, 76px) clamp(24px, 6vw, 96px);
+  background: #fffdf7;
+  color: #18233a;
+}
+
+.splash-duo-shell::before,
+.splash-duo-shell::after {
+  position: absolute;
+  z-index: -1;
+  display: block;
+  content: "";
+  pointer-events: none;
+}
+
+/* Soft corner shapes keep the page lively without competing with the game controls. */
+.splash-duo-shell::before {
+  top: -190px;
+  left: -150px;
+  width: clamp(260px, 29vw, 430px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #e3f2c4;
+  transform: rotate(-16deg);
+}
+
+.splash-duo-shell::after {
+  bottom: -245px;
+  left: -120px;
+  width: clamp(340px, 36vw, 540px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #d8eaff;
+}
+
+.splash-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(330px, .82fr);
+  align-items: center;
+  gap: clamp(24px, 3vw, 48px);
+  width: min(100%, 1280px);
+  margin: 0 auto;
+}
+
+.splash-copy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(26px, 3.2vw, 42px);
+  padding: 8px 0;
+}
+
+.splash-wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  margin: 0;
+  color: #18233a;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(76px, 8.2vw, 122px);
+  font-weight: 400;
+  letter-spacing: -.075em;
+  line-height: .98;
+  white-space: nowrap;
+}
+
+.splash-wordmark .wordmark-regular {
+  color: inherit;
+  font-weight: 400;
+}
+
+.splash-wordmark .wordmark-bold {
+  color: inherit;
+  font-weight: 700;
+}
+
+.splash-challenge {
+  display: flex;
+  max-width: 100%;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  color: #18233a;
+  font-family: "fontWars Display", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(34px, 3.8vw, 56px);
+  font-weight: 800;
+  letter-spacing: -.052em;
+  line-height: 1.13;
+  text-wrap: pretty;
+}
+
+.splash-challenge > span:last-child { display: block; }
+.splash-challenge mark {
+  display: inline-block;
+  padding: 0 .2em .07em;
+  border-radius: .22em;
+  background: #ffd24f;
+  color: #18233a;
+}
+
+.splash-note-sr {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.splash-actions {
+  display: flex;
+  width: min(100%, 560px);
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.splash-cta {
+  display: flex;
+  width: 100%;
+  min-height: 76px;
+  justify-content: center;
+  padding: 12px 30px;
+  border: 0;
+  border-radius: 25px;
+  background: #216fdd;
+  color: #ffffff;
+  font-size: clamp(24px, 2.5vw, 34px);
+  font-weight: 800;
+  letter-spacing: -.025em;
+  line-height: 1.1;
+  text-align: center;
+  box-shadow: 0 5px 0 #1558b8, 0 13px 28px rgba(37, 112, 220, .18);
+  transition: transform .16s ease, background .16s ease, box-shadow .16s ease;
+}
+
+.splash-cta:hover:not(:disabled) {
+  background: #1b63c9;
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 #1558b8, 0 17px 30px rgba(37, 112, 220, .22);
+}
+
+.splash-cta:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #1558b8, 0 6px 14px rgba(37, 112, 220, .16);
+}
+
+.splash-cta:disabled { opacity: .78; }
+
+.splash-settings-button {
+  display: inline-flex;
+  width: min(100%, 290px);
+  min-height: 68px;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 22px;
+  border: 2px solid #71819c;
+  border-radius: 23px;
+  background: rgba(255, 255, 255, .48);
+  color: #18233a;
+  font-size: 21px;
+  font-weight: 700;
+  transition: background .16s ease, border-color .16s ease, transform .16s ease;
+}
+
+.splash-settings-button:hover {
+  border-color: #4c6388;
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.splash-settings-symbol {
+  display: inline-block;
+  font-size: 25px;
+  line-height: 1;
+}
+
+.splash-actions .inline-error {
+  width: 100%;
+  margin: 0;
+  text-align: center;
+}
+
+/* The type specimen artwork is decorative. Each tile is a responsive CSS element. */
+.splash-art {
+  position: relative;
+  width: min(100%, 590px);
+  min-height: clamp(460px, 48vw, 660px);
+  justify-self: center;
+  isolation: isolate;
+}
+
+.splash-art-blob {
+  position: absolute;
+  z-index: -1;
+  inset: 6% 5% 9% 4%;
+  border-radius: 47% 53% 58% 42% / 45% 42% 58% 55%;
+  background: #cfe3ff;
+  transform: rotate(-9deg);
+}
+
+.splash-art-card {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(35, 49, 70, .04);
+  border-radius: clamp(18px, 2vw, 28px);
+  background: #fffaf1;
+  box-shadow: 0 13px 26px rgba(47, 69, 101, .13);
+  line-height: 1;
+  user-select: none;
+}
+
+.splash-art-card span { display: block; }
+
+.splash-art-card--back {
+  top: 18%;
+  left: 4%;
+  width: 47%;
+  height: 42%;
+  color: #aeb8c8;
+  font-family: Inter, ui-sans-serif, sans-serif;
+  font-size: clamp(60px, 7vw, 105px);
+  font-weight: 800;
+  transform: rotate(-11deg);
+  animation: splash-card-float 7.4s ease-in-out infinite;
+}
+
+.splash-art-card--front {
+  z-index: 2;
+  top: 34%;
+  left: 31%;
+  width: 48%;
+  height: 43%;
+  background: #ffffff;
+  color: #17233b;
+  font-family: Inter, ui-sans-serif, sans-serif;
+  font-size: clamp(70px, 8.4vw, 122px);
+  font-weight: 850;
+  letter-spacing: -.075em;
+  transform: rotate(8deg);
+  animation: splash-card-float 6.8s ease-in-out -1.2s infinite;
+}
+
+.splash-art-card--serif {
+  z-index: 3;
+  top: 54%;
+  left: 64%;
+  width: 34%;
+  height: 32%;
+  background: #fbf5eb;
+  color: #17233b;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(43px, 5.2vw, 75px);
+  font-style: italic;
+  transform: rotate(10deg);
+  animation: splash-card-float 7.8s ease-in-out -2.4s infinite;
+}
+
+.splash-art-spark {
+  position: absolute;
+  z-index: 4;
+  display: block;
+  width: clamp(11px, 1.3vw, 17px);
+  height: clamp(48px, 5.5vw, 72px);
+  border-radius: 99px;
+  background: #ffd24f;
+  transform-origin: center;
+}
+
+.splash-art-spark--one { top: 15%; right: 31%; transform: rotate(-24deg); }
+.splash-art-spark--two { top: 9%; right: 17%; transform: rotate(27deg); }
+.splash-art-spark--three { top: 20%; right: 6%; height: clamp(33px, 3.6vw, 48px); transform: rotate(52deg); }
+
+.splash-art-swoosh {
+  position: absolute;
+  right: -2%;
+  bottom: 3%;
+  width: 54%;
+  height: auto;
+  overflow: visible;
+  fill: none;
+  stroke: #ffd24f;
+  stroke-width: 15;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform: rotate(-6deg);
+  opacity: .98;
+}
+
+@keyframes splash-card-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -9px; }
+}
+
+/* Theme is still changed in Settings; no theme switch is placed on the landing page. */
+:root[data-theme="dark"] .splash-body,
+:root[data-theme="dark"] .splash-shell.splash-duo-shell {
+  background: #151c2c;
+  color: #f7f9ff;
+}
+
+:root[data-theme="dark"] .splash-duo-shell::before { background: #31432f; }
+:root[data-theme="dark"] .splash-duo-shell::after { background: #243b5d; }
+:root[data-theme="dark"] .splash-wordmark,
+:root[data-theme="dark"] .splash-challenge { color: #f7f9ff; }
+:root[data-theme="dark"] .splash-challenge mark { background: #ffd24f; color: #18233a; }
+:root[data-theme="dark"] .splash-settings-button {
+  border-color: #9ba9c0;
+  background: rgba(30, 42, 63, .78);
+  color: #f7f9ff;
+}
+:root[data-theme="dark"] .splash-settings-button:hover { background: #293955; }
+:root[data-theme="dark"] .splash-art-blob { background: #2a456a; }
+:root[data-theme="dark"] .splash-art-card { border-color: rgba(255, 255, 255, .12); }
+:root[data-theme="dark"] .splash-art-swoosh { stroke: #e8b83e; }
+
+@media (max-width: 920px) {
+  .splash-shell.splash-duo-shell { padding: 42px 26px 52px; }
+  .splash-hero { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .splash-copy { align-items: center; gap: 24px; text-align: center; }
+  .splash-wordmark { font-size: clamp(70px, 13vw, 98px); }
+  .splash-challenge {
+    align-items: center;
+    font-size: clamp(35px, 6.2vw, 52px);
+    line-height: 1.14;
+  }
+  .splash-art { width: min(100%, 470px); min-height: clamp(250px, 54vw, 365px); }
+  .splash-art-card--back { font-size: clamp(58px, 12vw, 88px); }
+  .splash-art-card--front { font-size: clamp(68px, 14vw, 105px); }
+  .splash-art-card--serif { font-size: clamp(42px, 8vw, 63px); }
+  .splash-art-swoosh { bottom: 0; }
+}
+
+@media (max-width: 520px) {
+  .splash-shell.splash-duo-shell { padding: 34px 20px 44px; }
+  .splash-hero { gap: 7px; }
+  .splash-copy { gap: 21px; }
+  .splash-wordmark { font-size: clamp(62px, 15vw, 78px); }
+  .splash-challenge { font-size: clamp(32px, 8.4vw, 43px); letter-spacing: -.045em; }
+  .splash-actions { width: min(100%, 430px); gap: 15px; }
+  .splash-cta { min-height: 66px; border-radius: 21px; font-size: 27px; }
+  .splash-settings-button { min-height: 58px; font-size: 19px; border-radius: 20px; }
+  .splash-art { width: min(100%, 390px); min-height: clamp(220px, 65vw, 275px); }
+  .splash-art-card--back { font-size: clamp(50px, 13vw, 72px); }
+  .splash-art-card--front { font-size: clamp(60px, 16vw, 88px); }
+  .splash-art-card--serif { font-size: clamp(37px, 10vw, 55px); }
+  .splash-art-spark--one { top: 10%; }
+  .splash-art-spark--two { top: 5%; }
+  .splash-art-spark--three { top: 16%; }
+
+}
+
+@media (max-width: 360px) {
+  .splash-shell.splash-duo-shell { padding-inline: 16px; }
+  .splash-wordmark { font-size: 61px; }
+  .splash-challenge { font-size: 31px; }
+  .splash-art { min-height: 214px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-art-card--back,
+  .splash-art-card--front,
+  .splash-art-card--serif { animation: none !important; }
+  .splash-cta,
+  .splash-settings-button { transition: none !important; }
+}
+
+@media (forced-colors: active) {
+  .splash-cta,
+  .splash-settings-button { border: 2px solid ButtonText; }
+  .splash-cta:focus-visible,
+  .splash-settings-button:focus-visible { outline: 3px solid Highlight; outline-offset: 4px; }
+  .splash-art { forced-color-adjust: none; }
+}
