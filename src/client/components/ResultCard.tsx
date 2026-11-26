@@ -19,7 +19,6 @@ export function ResultCard({ game, onOpenSettings }: Props) {
   const [push, setPush] = useState(game.push);
   const [message, setMessage] = useState('');
   const [leaders, setLeaders] = useState<Array<{ username: string; score: number }>>([]);
-  const scorePercent = Math.round((game.totalScore / 5_000) * 1_000) / 10;
   const correctCount = game.results.filter((entry) => entry.result.isCorrect).length;
   const accuracyPercent = game.results.length ? Math.round((correctCount / game.results.length) * 100) : 0;
   const completed = game.results.length;
@@ -75,23 +74,23 @@ export function ResultCard({ game, onOpenSettings }: Props) {
     }
   }
 
-
   return (
     <main className="result-page">
       <header className="game-brand-row">
         <div className="wordmark"><span className="wordmark-regular">font</span><span className="wordmark-bold">Wars</span></div>
         <button type="button" className="settings-open-button" onClick={onOpenSettings}>Settings</button>
       </header>
+
       <section className="score-hero" aria-labelledby="score-heading">
         <h1 id="score-heading" className="result-heading">Your score</h1>
-        <div className="score-number">{formatScore(game.totalScore)}<span> / 5,000</span></div>
+        <div className="score-number">
+          <span className="score-value">{formatScore(game.totalScore)}</span>
+          <span className="score-unit">points</span>
+        </div>
         <div className="score-meta">
           <span>{correctCount}/{completed} correct · {accuracyPercent}%</span>
           {!isWebPreview() && <span>{game.playerCount > 1 ? `Top ${game.percentile ?? 100}%` : 'First on the board'}</span>}
           {game.streak > 0 && <span>{game.streak} day streak</span>}
-        </div>
-        <div className="score-bar" role="progressbar" aria-label="Score" aria-valuemin={0} aria-valuemax={5000} aria-valuenow={game.totalScore}>
-          <i style={{ width: `${scorePercent}%` }} />
         </div>
         <p className="score-subline">{completed} of 5 rounds complete</p>
       </section>
