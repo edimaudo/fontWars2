@@ -12,6 +12,7 @@ import { SettingsPage } from './components/SettingsPage';
 import { applySavedTheme } from './theme';
 import { getRoundStudyGuide } from '../shared/progression';
 import './styles.css';
+import './duo-app-design.css';
 
 const ROUND_MS = 12_000;
 function GameApp() {
@@ -270,14 +271,27 @@ function GameApp() {
             setShowSettings(false);
           }
         }}
-        backLabel={dataWasDeleted ? 'Return to fontWars' : game?.status === 'COMPLETED' ? 'Back to results' : 'Back to game'}
+        returnLabel={dataWasDeleted ? 'Return to fontWars' : game?.status === 'COMPLETED' ? 'Return to results' : 'Return to game'}
+        onHome={(event) => {
+          if (isWebPreview()) window.location.assign('/');
+          else exitExpandedMode(event.nativeEvent);
+        }}
         onDeleted={() => setDataWasDeleted(true)}
       />
     );
   }
 
   if (game?.status === 'COMPLETED' && !round && !reveal) {
-    return <ResultCard game={game} onOpenSettings={() => setShowSettings(true)} />;
+    return (
+      <ResultCard
+        game={game}
+        onOpenSettings={() => setShowSettings(true)}
+        onHome={(event) => {
+          if (isWebPreview()) window.location.assign('/');
+          else exitExpandedMode(event.nativeEvent);
+        }}
+      />
+    );
   }
 
   const seconds = Math.max(0, remainingMs / 1_000);

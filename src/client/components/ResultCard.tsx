@@ -8,9 +8,10 @@ import { getRoundStudyGuide } from '../../shared/progression';
 interface Props {
   game: InitPayload;
   onOpenSettings: () => void;
+  onHome: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
-export function ResultCard({ game, onOpenSettings }: Props) {
+export function ResultCard({ game, onOpenSettings, onHome }: Props) {
   const [selected, setSelected] = useState<number | null>(0);
   const [sharing, setSharing] = useState(false);
   const [posted, setPosted] = useState(game.hasCommented);
@@ -76,9 +77,12 @@ export function ResultCard({ game, onOpenSettings }: Props) {
 
   return (
     <main className="result-page">
-      <header className="game-brand-row">
+      <header className="game-brand-row result-brand-row">
         <div className="wordmark"><span className="wordmark-regular">font</span><span className="wordmark-bold">Wars</span></div>
-        <button type="button" className="settings-open-button" onClick={onOpenSettings}>Settings</button>
+        <div className="result-header-actions">
+          <button type="button" className="result-home-button" onClick={onHome}>Home</button>
+          <button type="button" className="settings-open-button" onClick={onOpenSettings}>Settings</button>
+        </div>
       </header>
 
       <section className="score-hero" aria-labelledby="score-heading">

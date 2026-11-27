@@ -4,11 +4,12 @@ import { readSavedTheme, saveTheme, type Theme } from '../theme';
 
 interface Props {
   onBack: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  backLabel: string;
+  returnLabel: string;
+  onHome?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   onDeleted?: () => Promise<void> | void;
 }
 
-export function SettingsPage({ onBack, backLabel, onDeleted }: Props) {
+export function SettingsPage({ onBack, returnLabel, onHome, onDeleted }: Props) {
   const [theme, setTheme] = useState<Theme>(readSavedTheme);
   const [deleteArmed, setDeleteArmed] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -38,9 +39,7 @@ export function SettingsPage({ onBack, backLabel, onDeleted }: Props) {
   return (
     <main className="settings-shell">
       <header className="settings-header">
-        <button type="button" className="settings-back-button" onClick={onBack}>{backLabel}</button>
         <div className="wordmark" aria-label="fontWars"><span className="wordmark-regular">font</span><span className="wordmark-bold">Wars</span></div>
-        <span aria-hidden="true" className="settings-header-spacer" />
       </header>
 
       <div className="settings-content">
@@ -84,6 +83,11 @@ export function SettingsPage({ onBack, backLabel, onDeleted }: Props) {
           {error && <p className="settings-error" role="alert">{error}</p>}
         </section>
       </div>
+
+      <footer className="settings-actions">
+        <button type="button" className="settings-return-button" onClick={onBack}>{returnLabel}</button>
+        {onHome && <button type="button" className="settings-home-button" onClick={onHome}>Home</button>}
+      </footer>
     </main>
   );
 }

@@ -6,6 +6,7 @@ import { SettingsPage } from './components/SettingsPage';
 import { applySavedTheme } from './theme';
 import './styles.css';
 import './splash-design.css';
+import './duo-app-design.css';
 
 function SplashApp() {
   const [error, setError] = useState('');
@@ -34,7 +35,7 @@ function SplashApp() {
   }
 
   if (showSettings) {
-    return <SettingsPage onBack={() => setShowSettings(false)} backLabel="Back to fontWars" />;
+    return <SettingsPage onBack={() => setShowSettings(false)} returnLabel="Return to fontWars" />;
   }
 
   return (
@@ -68,7 +69,6 @@ function SplashApp() {
               className="settings-open-button splash-settings-button"
               onClick={() => setShowSettings(true)}
             >
-              <span aria-hidden="true" className="splash-settings-symbol">⚙</span>
               Settings
             </button>
             {error && <p className="inline-error" role="alert">{error}</p>}
