@@ -26,7 +26,7 @@ export function RevealOverlay({ reveal, onNext, lastRound }: Props) {
           const isSelectedMiss = option.id === result.selectedFontId && !result.isCorrect;
           return (
             <div className={`font-option reveal-option ${isCorrect ? 'reveal-option-correct' : isSelectedMiss ? 'reveal-option-missed' : 'reveal-option-dim'}`} key={option.id}>
-              <strong style={{ fontFamily: `"${option.renderFamily}", ${option.fallbackCss}`, fontWeight: option.assetWeight as React.CSSProperties['fontWeight'], fontStyle: option.assetStyle, fontSynthesis: 'none' }}>{option.name}</strong>
+              <strong>{option.name}</strong>
               {!isWebPreview() && <div className="reveal-option-bar"><i style={{ width: `${crowdPercentages[option.id] ?? 0}%` }} /></div>}
               {!isWebPreview() && <span className="reveal-option-percent">{crowdPercentages[option.id] ?? 0}% picked</span>}
               {isCorrect && <span className="answer-stamp">✓ MATCH</span>}

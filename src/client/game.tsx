@@ -303,14 +303,6 @@ function GameApp() {
       <header className="game-header">
         <div className="game-brand-row">
           <div className="wordmark"><span className="wordmark-regular">font</span><span className="wordmark-bold">Wars</span></div>
-          <div className="game-header-actions">
-            <button type="button" className="settings-open-button" onClick={() => setShowSettings(true)}>Settings</button>
-            {!loading && round && (
-              <button type="button" className="end-game-button" onClick={() => setShowEndConfirm(true)} disabled={submitting}>
-                End game
-              </button>
-            )}
-          </div>
         </div>
         <div className="round-hud">
           <div
@@ -347,7 +339,7 @@ function GameApp() {
             <section className="foundry-options" aria-labelledby="options-heading">
               <h2 id="options-heading" className="options-title">Which font is it?</h2>
               <div className="option-grid">
-                {round.options.map((option, index) => (
+                {round.options.map((option) => (
                   <button
                     className="font-option"
                     key={option.id}
@@ -355,8 +347,7 @@ function GameApp() {
                     disabled={submitting || remainingMs <= 0}
                     aria-label={`Choose ${option.name}`}
                   >
-                    <span className="option-number" aria-hidden="true">{index + 1}</span>
-                    <strong style={{ fontFamily: `"${option.renderFamily}", ${option.fallbackCss}`, fontWeight: option.assetWeight as React.CSSProperties['fontWeight'], fontStyle: option.assetStyle, fontSynthesis: 'none' }}>{option.name}</strong>
+                    <strong>{option.name}</strong>
                   </button>
                 ))}
               </div>
@@ -388,6 +379,15 @@ function GameApp() {
           <button className="primary-button" onClick={() => void syncGame()}>Refresh game <span aria-hidden="true">↻</span></button>
         </section>
       )}
+
+      <footer className="game-actions-footer" aria-label="Game controls">
+        <button type="button" className="settings-open-button" onClick={() => setShowSettings(true)}>Settings</button>
+        {!loading && round && (
+          <button type="button" className="end-game-button" onClick={() => setShowEndConfirm(true)} disabled={submitting}>
+            End game
+          </button>
+        )}
+      </footer>
 
       {showEndConfirm && (
         <div className="end-game-backdrop">

@@ -79,10 +79,6 @@ export function ResultCard({ game, onOpenSettings, onHome }: Props) {
     <main className="result-page">
       <header className="game-brand-row result-brand-row">
         <div className="wordmark"><span className="wordmark-regular">font</span><span className="wordmark-bold">Wars</span></div>
-        <div className="result-header-actions">
-          <button type="button" className="result-home-button" onClick={onHome}>Home</button>
-          <button type="button" className="settings-open-button" onClick={onOpenSettings}>Settings</button>
-        </div>
       </header>
 
       <section className="score-hero" aria-labelledby="score-heading">
@@ -178,6 +174,11 @@ export function ResultCard({ game, onOpenSettings, onHome }: Props) {
       )}
 
       {message && <p className="inline-error" role="status">{message}</p>}
+
+      <footer className="result-actions-footer" aria-label="Result navigation">
+        <button type="button" className="result-home-button" onClick={onHome}>Home</button>
+        <button type="button" className="settings-open-button" onClick={onOpenSettings}>Settings</button>
+      </footer>
     </main>
   );
 }

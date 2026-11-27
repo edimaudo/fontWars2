@@ -381,3 +381,341 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
     outline-offset: 4px;
   }
 }
+
+
+/* ================================================================
+   fontWars interaction/layout refinement
+   One control system across landing, gameplay, results and Settings.
+   ================================================================ */
+:root {
+  --fw-control-radius: 18px;
+  --fw-control-height: 58px;
+}
+
+button {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Landing actions: equal width and height; the old oversized Play button is reduced. */
+.splash-actions {
+  width: min(100%, 450px);
+  gap: 13px;
+}
+.splash-cta,
+.splash-settings-button {
+  display: flex;
+  width: 100%;
+  min-height: 60px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
+  border-radius: var(--fw-control-radius);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.splash-cta {
+  border: 0;
+  background: #216fdd;
+  color: #fff;
+  box-shadow: 0 4px 0 #1558b8, 0 9px 18px rgba(37, 112, 220, .14);
+}
+.splash-settings-button {
+  border: 2px solid #71819c;
+  background: rgba(255,255,255,.55);
+  color: #18233a;
+  box-shadow: none;
+}
+:root[data-theme="dark"] .splash-settings-button {
+  border-color: #9ba9c0;
+  background: rgba(30,42,63,.82);
+  color: #f7f9ff;
+}
+
+/* Shared button shape, type scale, target size and interaction feedback. */
+.settings-open-button,
+.end-game-button,
+.result-home-button,
+.settings-return-button,
+.settings-home-button,
+.danger-outline-button,
+.danger-button,
+.settings-back-button {
+  min-height: var(--fw-control-height);
+  border-radius: var(--fw-control-radius);
+  padding: 10px 22px;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 17px;
+  font-weight: 750;
+  line-height: 1.15;
+  transition: background .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.settings-open-button,
+.end-game-button,
+.result-home-button,
+.settings-home-button,
+.danger-outline-button,
+.settings-back-button {
+  border: 2px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+}
+.settings-open-button:hover:not(:disabled),
+.end-game-button:hover:not(:disabled),
+.result-home-button:hover:not(:disabled),
+.settings-home-button:hover:not(:disabled),
+.settings-back-button:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--surface-soft);
+  transform: translateY(-1px);
+}
+.settings-return-button,
+.danger-button {
+  border: 0;
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 0 #1558b8;
+}
+.settings-return-button:hover:not(:disabled),
+.danger-button:hover:not(:disabled) { background: var(--primary-hover); }
+
+/* Active game: compact specimen, balanced choices, bottom-aligned navigation. */
+.game-shell {
+  display: flex;
+  width: min(100%, 1120px);
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  gap: clamp(8px, 1.5vh, 14px);
+  padding: clamp(12px, 2.1vw, 24px) clamp(14px, 2.6vw, 30px) 12px;
+}
+.game-header { flex: 0 0 auto; gap: 10px; }
+.game-brand-row { min-height: 48px; }
+.game-brand-row .wordmark { font-size: clamp(34px, 4vw, 46px); }
+.game-header-actions { display: none; }
+.round-hud { min-height: 24px; gap: 18px; }
+.round-progress span { height: 8px; }
+.timer-track { height: 8px; }
+.timer b { font-size: 15px; }
+.play-instruction {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.3;
+}
+.specimen-canvas {
+  flex: 0 0 auto;
+  min-height: clamp(118px, 18vh, 178px);
+  max-height: 178px;
+  padding: 12px 20px;
+  border-width: 2px;
+  border-radius: 24px;
+  box-shadow: 0 7px 18px rgba(36,75,126,.08);
+}
+.specimen-phrase {
+  padding: 6px 4px;
+  font-size: clamp(30px, 5.4vw, 60px);
+  line-height: 1.06;
+}
+.foundry-options {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+}
+.options-title { flex: 0 0 auto; margin: 0; font-size: 19px; }
+.option-grid {
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-auto-rows: minmax(0, 1fr);
+  gap: clamp(8px, 1.3vh, 12px);
+}
+.font-option {
+  min-width: 0;
+  min-height: 54px;
+  justify-content: center;
+  padding: 12px 16px;
+  border: 2px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 3px 0 rgba(39,70,112,.07);
+}
+.font-option strong,
+.reveal-option strong {
+  display: block;
+  width: 100%;
+  padding: 0 !important;
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif !important;
+  font-size: clamp(16px, 1.9vw, 20px);
+  font-style: normal !important;
+  font-weight: 700 !important;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.option-number { display: none !important; }
+.game-actions-footer {
+  display: grid;
+  width: min(100%, 620px);
+  flex: 0 0 auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-self: center;
+  gap: 12px;
+  margin: auto auto 0;
+  padding: 7px 0 max(5px, env(safe-area-inset-bottom));
+}
+.game-actions-footer > button {
+  width: 100%;
+  min-height: 54px;
+  border-radius: 18px;
+}
+.game-actions-footer .settings-open-button,
+.game-actions-footer .end-game-button { font-size: 17px; }
+.loading-stage { min-height: 0; flex: 1 1 auto; }
+.reveal-panel {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  border-radius: 22px;
+}
+.reveal-panel .option-grid { flex: 0 0 auto; }
+.reveal-option { min-height: 56px; }
+.reveal-option strong { font-size: 16px; }
+.next-button { min-height: 54px; border-radius: 18px; }
+
+/* Completed-game results: compact score panel with strong score typography.
+   Home and Settings now follow all result content, not the top header. */
+.result-page {
+  min-height: 100dvh;
+  gap: clamp(14px, 2.2vh, 22px);
+  padding: clamp(14px, 2.5vw, 28px) clamp(14px, 2.7vw, 30px) 18px;
+}
+.result-page .result-brand-row {
+  min-height: 50px;
+  flex: 0 0 auto;
+}
+.result-page .wordmark { font-size: clamp(36px, 4vw, 46px); }
+.result-header-actions { display: none !important; }
+.score-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "heading score" "meta score" "subline score";
+  align-items: center;
+  gap: 5px 20px;
+  min-height: 0;
+  padding: 17px 22px;
+  border: 0;
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: 0 6px 20px rgba(36,75,126,.06);
+}
+.score-hero .result-heading { grid-area: heading; margin: 0; font-size: 21px; }
+.score-hero .score-number {
+  grid-area: score;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(50px, 6vw, 68px);
+  font-weight: 850;
+  letter-spacing: -.055em;
+  line-height: .98;
+}
+.score-number .score-value { font-size: inherit; font-weight: 850; }
+.score-number .score-unit { color: var(--text-soft); font-size: 16px; font-weight: 650; letter-spacing: 0; }
+.score-hero .score-meta { grid-area: meta; margin: 0; gap: 6px 14px; font-size: 14px; }
+.score-hero .score-subline { grid-area: subline; margin: 0; font-size: 13px; }
+.result-actions-footer {
+  display: grid;
+  width: min(100%, 640px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-self: center;
+  gap: 12px;
+  margin: auto auto 0;
+  padding: 12px 0 max(5px, env(safe-area-inset-bottom));
+}
+.result-actions-footer > button {
+  width: 100%;
+  min-height: 58px;
+  border-radius: 18px;
+  font-size: 18px;
+}
+
+/* Settings, result and gameplay surfaces share the landing-page geometry. */
+.settings-shell { min-height: 100dvh; padding-bottom: 12px; }
+.settings-actions {
+  width: min(100%, 760px);
+  gap: 12px;
+  margin-top: auto;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+.settings-return-button, .settings-home-button { min-height: 58px; border-radius: 18px; font-size: 18px; }
+.settings-theme-options button { border-radius: 14px; font-family: Inter, sans-serif; font-weight: 750; }
+.settings-data-section .danger-outline-button { border-color: var(--danger); color: var(--danger); }
+
+@media (max-height: 720px) {
+  .game-shell { gap: 7px; padding-top: 9px; }
+  .game-header { gap: 7px; }
+  .game-brand-row { min-height: 42px; }
+  .game-brand-row .wordmark { font-size: 34px; }
+  .specimen-canvas { min-height: 112px; max-height: 145px; }
+  .options-title { font-size: 17px; }
+  .font-option { min-height: 48px; padding-block: 8px; }
+  .game-actions-footer > button { min-height: 48px; }
+}
+@media (max-width: 600px) {
+  .splash-cta, .splash-settings-button { min-height: 58px; font-size: 20px; }
+  .game-shell { padding: 10px 12px 8px; gap: 7px; }
+  .game-header { gap: 7px; }
+  .game-brand-row .wordmark { font-size: 34px; }
+  .round-hud { grid-template-columns: minmax(0, 1fr) minmax(120px, .9fr); }
+  .specimen-canvas { min-height: clamp(110px, 16vh, 150px); max-height: 150px; padding: 8px 12px; border-radius: 20px; }
+  .specimen-phrase { font-size: clamp(28px, 8vw, 42px); }
+  .font-option { min-height: 50px; padding: 9px 10px; border-radius: 15px; }
+  .font-option strong { font-size: clamp(15px, 4.1vw, 18px); }
+  .game-actions-footer { width: 100%; gap: 9px; }
+  .game-actions-footer > button { min-height: 50px; border-radius: 16px; font-size: 16px; }
+  .result-page { gap: 12px; padding: 12px 12px 8px; }
+  .score-hero { padding: 14px 16px; gap: 4px 12px; border-radius: 19px; }
+  .score-hero .result-heading { font-size: 19px; }
+  .score-hero .score-number { font-size: clamp(46px, 12vw, 58px); }
+  .score-number .score-unit { font-size: 14px; }
+  .score-hero .score-meta { font-size: 13px; }
+  .result-actions-footer { width: 100%; gap: 9px; }
+  .result-actions-footer > button { min-height: 52px; border-radius: 16px; font-size: 16px; }
+  .settings-actions { width: 100%; }
+}
+@media (max-width: 370px) {
+  .game-shell { padding-inline: 9px; }
+  .option-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 7px; }
+  .font-option { min-height: 46px; padding-inline: 8px; }
+  .font-option strong { font-size: 14px; }
+  .game-actions-footer > button { min-height: 46px; padding-inline: 8px; font-size: 14px; }
+}
+@media (max-width: 440px) {
+  .score-hero { grid-template-columns: minmax(0, 1fr) auto; }
+  .score-hero .score-meta { max-width: 25ch; }
+  .result-actions-footer > button { padding-inline: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .splash-cta, .splash-settings-button, .settings-open-button, .end-game-button,
+  .result-home-button, .settings-return-button, .settings-home-button,
+  .font-option, .result-actions-footer button, .game-actions-footer button {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+@media (forced-colors: active) {
+  .splash-cta, .splash-settings-button, .settings-open-button, .end-game-button,
+  .result-home-button, .settings-return-button, .settings-home-button,
+  .font-option, .game-actions-footer button, .result-actions-footer button {
+    border: 2px solid ButtonText;
+  }
+}
