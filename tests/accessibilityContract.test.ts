@@ -3,152 +3,69 @@ import { describe, expect, it } from 'vitest';
 
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8');
 
-describe('fontWars interface and accessibility contracts', () => {
-  it('uses the agreed landing-page positioning and removes preview notices', () => {
+describe('fontWars application accessibility contracts', () => {
+  it('keeps the approved landing-page hierarchy and action labels', () => {
     const splash = read('../src/client/splash.tsx');
-    expect(splash).toContain('A typographical skill game.');
-    expect(splash).toContain('Flaunt your keen sense of design.');
-    expect(splash).toContain('Playing fontWars is insanely addictive. Use responsibly.');
-    expect(splash).not.toContain('splash-mark');
-    expect(splash).not.toContain('>Aa</div>');
-    expect(splash).not.toContain('WEB PREVIEW');
-    expect(splash).not.toContain('Type Foundry');
-    expect(splash).not.toContain('A browser-only preview');
+    expect(splash).toContain('Challenge your');
+    expect(splash).toContain('Font');
+    expect(splash).toContain('design knowledge');
+    expect(splash).toContain('className="splash-note-sr"');
+    expect(splash).toContain("'Play'");
+    expect(splash).toContain('Settings');
+    expect(splash).not.toContain('Flaunt your keen sense of design.');
+    expect(splash).not.toContain('splash-settings-symbol');
   });
 
-  it('keeps gameplay concise and provides an accessible end-game action', () => {
+  it('keeps the active game actions together at the bottom of the game view', () => {
     const game = read('../src/client/game.tsx');
-    const canvas = read('../src/client/components/SpecimenCanvas.tsx');
+    expect(game).toContain('className="game-actions-footer"');
+    expect(game).toContain('>Settings</button>');
     expect(game).toContain('End game');
     expect(game).toContain('role="dialog"');
     expect(game).toContain('aria-modal="true"');
     expect(game).toContain('exitExpandedMode');
-    expect(game).toContain('getRoundStudyGuide(round.round).instruction');
-    expect(game).not.toContain('loading-mark');
-    expect(game).not.toContain('WEB PREVIEW');
-    expect(game).not.toContain('FIRST SPECIMEN');
-    expect(game).not.toContain('TYPE FOUNDRY');
-    expect(game).not.toContain('OTF');
-    expect(game).not.toContain('TTF');
-    expect(canvas).not.toContain('LETTERFORM STUDY');
-    expect(canvas).not.toContain('SPECIMEN {');
-    expect(canvas).not.toContain('THE LETTERFORM STUDY');
   });
 
-  it('removes font file formats and technical filenames from answer reveals', () => {
-    const reveal = read('../src/client/components/RevealOverlay.tsx');
-    const result = read('../src/client/components/ResultCard.tsx');
-    expect(reveal).not.toContain('OpenType');
-    expect(reveal).not.toContain('TrueType');
-    expect(reveal).not.toContain('OTF');
-    expect(reveal).not.toContain('TTF');
-    expect(reveal).not.toContain('correctFont.file');
-    expect(result).not.toContain('entry.font.file');
-    expect(result).not.toContain('specimens inspected');
-    expect(result).not.toContain('A daily typographic study');
-  });
-
-  it('keeps keyboard focus visible and respects reduced motion', () => {
-    const css = read('../src/client/styles.css');
-    expect(css).toContain('button:focus-visible');
-    expect(css).toContain('prefers-reduced-motion: reduce');
-    expect(css).toContain('overflow-y: auto');
-    expect(css).toContain('@media (max-width: 420px)');
-    expect(css).toContain('.end-game-backdrop');
-    expect(css).toContain('min-height: 44px');
-    expect(css).toContain('@media (forced-colors: active)');
-    expect(css).toContain('color: var(--text); font-size: clamp(34px, 8vw, 76px)');
-    expect(css).toContain('overflow-wrap: anywhere');
-  });
-
-  it('exposes game progress, timer and loading state to assistive technology', () => {
+  it('uses neutral Inter labels for answers and preserves the specimen font', () => {
     const game = read('../src/client/game.tsx');
-    expect(game).toContain('role="progressbar"');
-    expect(game).toContain('aria-valuetext={`Round ${progressRound} of 5`}');
-    expect(game).toContain('role="timer"');
-    expect(game).toContain('role="status" aria-live="polite"');
-  });
-
-  it('labels result selection and reveal information', () => {
-    const result = read('../src/client/components/ResultCard.tsx');
     const reveal = read('../src/client/components/RevealOverlay.tsx');
-    expect(result).toContain('aria-pressed={selected === index}');
-    expect(result).toContain("aria-label={`Round ${index + 1}: ${entry.result.isCorrect ? 'correct' : 'missed'}, ${entry.result.roundScore} points`}");
-    expect(reveal).toContain('aria-live="polite"');
-    expect(reveal).toContain('getRoundStudyGuide(result.round).feedback');
-    expect(reveal).not.toContain('diagnosticNote');
-    expect(reveal).not.toContain('AnatomyCallouts');
-    expect(result).not.toContain('entry.result.diagnosticNote');
+    const canvas = read('../src/client/components/SpecimenCanvas.tsx');
+    expect(game).toContain('<strong>{option.name}</strong>');
+    expect(game).not.toContain('option.renderFamily');
+    expect(game).not.toContain('option.assetWeight');
+    expect(game).not.toContain('option-number');
+    expect(reveal).toContain('<strong>{option.name}</strong>');
+    expect(reveal).not.toContain('option.renderFamily');
+    expect(canvas).toContain('target.renderFamily');
   });
 
-  it('keeps key UI text and focus indicators above the tested WCAG AA contrast thresholds', () => {
-    const contrast = (foreground: string, background: string) => {
-      const luminance = (hex: string) => {
-        const channels = [1, 3, 5].map((index) => Number.parseInt(hex.slice(index, index + 2), 16) / 255);
-        const linear = channels.map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
-        return 0.2126 * linear[0]! + 0.7152 * linear[1]! + 0.0722 * linear[2]!;
-      };
-      const a = luminance(foreground);
-      const b = luminance(background);
-      return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-    };
-
-    expect(contrast('#20252d', '#f3f1eb')).toBeGreaterThanOrEqual(4.5);
-    expect(contrast('#555e69', '#f3f1eb')).toBeGreaterThanOrEqual(4.5);
-    expect(contrast('#f5f3ed', '#15191f')).toBeGreaterThanOrEqual(4.5);
-    expect(contrast('#c0c6ce', '#15191f')).toBeGreaterThanOrEqual(4.5);
-    expect(contrast('#ffffff', '#294965')).toBeGreaterThanOrEqual(4.5);
-    expect(contrast('#221d14', '#e2b65f')).toBeGreaterThanOrEqual(4.5);
+  it('puts Home and Settings after the results content and keeps the score label clear', () => {
+    const result = read('../src/client/components/ResultCard.tsx');
+    expect(result).toContain('className="result-actions-footer"');
+    expect(result).toContain('>Home</button>');
+    expect(result).toContain('>Settings</button>');
+    expect(result).toContain('className="score-value"');
+    expect(result).toContain('className="score-unit">points');
+    expect(result).not.toContain('/ 5,000');
   });
 
-  it('centralizes theme and data controls on the Settings page', () => {
+  it('keeps theme and data management in Settings with bottom navigation', () => {
     const settings = read('../src/client/components/SettingsPage.tsx');
-    const theme = read('../src/client/theme.ts');
-    const splash = read('../src/client/splash.tsx');
-    const game = read('../src/client/game.tsx');
-    const result = read('../src/client/components/ResultCard.tsx');
-    const css = read('../src/client/styles.css');
     expect(settings).toContain('Appearance');
     expect(settings).toContain('Manage my data');
-    expect(settings).toContain("setTheme('light')");
-    expect(settings).toContain("setTheme('dark')");
-    expect(settings).toContain('aria-pressed={theme ===');
     expect(settings).toContain('deleteMyGameData');
-    expect(theme).toContain('localStorage.setItem');
-    expect(theme).toContain('applySavedTheme');
-    expect(splash).toContain('<SettingsPage');
-    expect(game).toContain('<SettingsPage');
-    expect(result).toContain('onOpenSettings');
-    expect(splash).toContain('>Settings</button>');
-    expect(game).toContain('>Settings</button>');
-    expect(css).toContain('.settings-shell');
-    expect(css).toContain('.settings-theme-options');
-    expect(css).toContain('.settings-open-button');
-    expect(splash).not.toContain('ThemeToggle');
-    expect(game).not.toContain('ThemeToggle');
-    expect(result).not.toContain('ThemeToggle');
-    expect(splash).not.toContain('Manage game data');
-    expect(result).not.toContain('Manage game data');
-    expect(result).not.toContain('deleteMyGameData');
+    expect(settings).toContain('className="settings-actions"');
+    expect(settings).toContain('className="settings-return-button"');
   });
 
-  it('centres the landing page and uses a single-colour Inter wordmark with two weights', () => {
-    const splash = read('../src/client/splash.tsx');
-    const game = read('../src/client/game.tsx');
-    const result = read('../src/client/components/ResultCard.tsx');
-    const css = read('../src/client/styles.css');
-    expect(splash).toContain('className="wordmark-regular"');
-    expect(splash).toContain('className="wordmark-bold"');
-    expect(css).toContain('font-family: Inter, ui-sans-serif, system-ui, sans-serif');
-    expect(css).toContain('font-weight: 400');
-    expect(css).toContain('font-weight: 700');
-    expect(css).toContain('align-items: center; justify-content: center');
-    expect(css).toContain('.wordmark .wordmark-bold { color: inherit;');
-    expect(game).toContain('className="wordmark-regular"');
-    expect(result).toContain('className="wordmark-regular"');
-    expect(game).not.toContain('Start broad.');
-    expect(read('../src/shared/progression.ts')).not.toContain('visual density');
+  it('uses visible focus, reduced motion, forced-colour support and responsive layouts', () => {
+    const css = read('../src/client/duo-app-design.css');
+    expect(css).toContain('button:focus-visible');
+    expect(css).toContain('prefers-reduced-motion: reduce');
+    expect(css).toContain('@media (max-width: 720px)');
+    expect(css).toContain('@media (max-width: 390px)');
+    expect(css).toContain('@media (max-height: 620px)');
+    expect(css).toContain('@media (forced-colors: active)');
+    expect(css).toContain('grid-template-rows: auto minmax(118px, .72fr) minmax(0, 1fr) auto');
   });
-
-
 });

@@ -2,7 +2,7 @@
   "name": "fontwars",
   "version": "1.0.0",
   "private": true,
-  "description": "fontWars \u2014 a daily typographic identification duel for Reddit Devvit Web",
+  "description": "fontWars — a daily typographic identification duel for Reddit Devvit Web",
   "engines": {
     "node": ">=24.18.0"
   },
@@ -15,6 +15,7 @@
     "build": "npm run typecheck && npm run build:client && npm run build:server",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:ui": "vitest run tests/accessibilityContract.test.ts tests/themeAndVisualContract.test.ts tests/applicationDesignContract.test.ts",
     "deploy": "npm run build && devvit upload",
     "launch": "npm run build && devvit publish",
     "login": "devvit login",
